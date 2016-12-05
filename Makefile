@@ -27,7 +27,7 @@ all: $(UPTODATE_FILES)
 common-build/.src:
 	rm -rf common-build/.src
 	mkdir common-build/.src
-	cp -r !(common-build) common-build/.src
+	cp -r $(shell ls | grep -v ^common-build$) common-build/.src
 
 common-build/$(UPTODATE): common-build/.src common-build/*
 
