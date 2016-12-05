@@ -24,7 +24,12 @@ DOCKER_IMAGE_DIRS=$(patsubst %/Dockerfile,%,$(DOCKERFILES))
 all: $(UPTODATE_FILES)
 
 # And now what goes into each image
-common-build/$(UPTODATE): common-build/*
+common-build/.src:
+	rm -rf common-build/.src
+	mkdir common-build/.src
+	cp -r !(common-build) common-build/.src
+
+common-build/$(UPTODATE): common-build/.src common-build/*
 
 # All the boiler plate for building golang follows:
 SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
