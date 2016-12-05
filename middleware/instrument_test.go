@@ -3,7 +3,7 @@ package middleware_test
 import (
 	"testing"
 
-	"github.com/weaveworks/scope/common/middleware"
+	"github.com/weaveworks/common/middleware"
 )
 
 func TestMakeLabelValue(t *testing.T) {
