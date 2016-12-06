@@ -16,7 +16,5 @@ dependencies:
 
 test:
   override:
-    - make RM= lint:
-        parallel: true
-    - make RM= test:
-        parallel: true
+    - make RM= lint
+    - make RM= test
