@@ -18,7 +18,6 @@
 set -e
 
 IGNORE_LINT_COMMENT=
-IGNORE_TEST_PACKAGES=
 IGNORE_SPELLINGS=
 while true; do
     case "$1" in
@@ -27,7 +26,7 @@ while true; do
             shift 1
             ;;
         -notestpackage)
-            IGNORE_TEST_PACKAGES=1
+            # NOOP, still accepted for backwards compatibility
             shift 1
             ;;
         -ignorespelling)
@@ -41,7 +40,7 @@ while true; do
 done
 
 spell_check() {
-    filename="$1"
+    local filename="$1"
     local lint_result=0
 
     # we don't want to spell check tar balls, binaries, Makefile and json files
@@ -65,32 +64,8 @@ spell_check() {
     return $lint_result
 }
 
-test_mismatch() {
-    filename="$1"
-    package=$(grep '^package ' "$filename" | awk '{print $2}')
-    local lint_result=0
-
-    if [[ $package == "main" ]]; then
-        return # in package main, all bets are off
-    fi
-
-    if [[ $filename == *"_internal_test.go" ]]; then
-        if [[ $package == *"_test" ]]; then
-            lint_result=1
-            echo "${filename}: should not be part of a _test package"
-        fi
-    else
-        if [[ ! $package == *"_test" ]]; then
-            lint_result=1
-            echo "${filename}: should be part of a _test package"
-        fi
-    fi
-
-    return $lint_result
-}
-
 lint_go() {
-    filename="$1"
+    local filename="$1"
     local lint_result=0
 
     if [ -n "$(gofmt -s -l "${filename}")" ]; then
@@ -128,10 +103,10 @@ lint_go() {
 }
 
 lint_sh() {
-    filename="$1"
+    local filename="$1"
     local lint_result=0
 
-    if [ -n "$(diff <(shfmt -i 4 "${filename}") "${filename}")" ]; then
+    if ! diff <(shfmt -i 4 "${filename}") "${filename}" >/dev/null; then
         lint_result=1
         echo "${filename}: run shfmt -i 4 -w ${filename}"
     fi
@@ -140,6 +115,18 @@ lint_sh() {
     # don't have it installed.
     if type shellcheck >/dev/null 2>&1; then
         shellcheck "${filename}" || lint_result=1
+    fi
+
+    return $lint_result
+}
+
+lint_tf() {
+    local filename="$1"
+    local lint_result=0
+
+    if ! diff <(hclfmt "${filename}") "${filename}" >/dev/null; then
+        lint_result=1
+        echo "${filename}: run hclfmt -w ${filename}"
     fi
 
     return $lint_result
@@ -155,26 +142,22 @@ lint() {
         return
     fi
 
-    # Don't lint static.go
+    # Don't lint specific files
     case "$(basename "${filename}")" in
         static.go) return ;;
         coverage.html) return ;;
+        *.pb.go) return ;;
     esac
 
-    if [[ "$(file --mime-type "${filename}" | awk '{print $2}')" = "text/x-shellscript" ]]; then
+    if [[ "$(file --mime-type "${filename}" | awk '{print $2}')" == "text/x-shellscript" ]]; then
         ext="sh"
     fi
 
     case "$ext" in
         go) lint_go "${filename}" || lint_result=1 ;;
         sh) lint_sh "${filename}" || lint_result=1 ;;
+        tf) lint_tf "${filename}" || lint_result=1 ;;
     esac
-
-    if [ -z "$IGNORE_TEST_PACKAGES" ]; then
-        if [[ "$filename" == *"_test.go" ]]; then
-            test_mismatch "${filename}" || lint_result=1
-        fi
-    fi
 
     spell_check "${filename}" || lint_result=1
 
