@@ -60,7 +60,7 @@ lint: common-build/$(UPTODATE)
 	./tools/lint -notestpackage -ignorespelling queriers -ignorespelling Queriers .
 
 test: common-build/$(UPTODATE)
-	./tools/test -no-go-get
+	./tools/test -no-go-get -netgo
 
 shell: common-build/$(UPTODATE)
 	bash
