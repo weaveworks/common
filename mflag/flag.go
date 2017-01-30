@@ -85,7 +85,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
