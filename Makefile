@@ -24,12 +24,7 @@ DOCKER_IMAGE_DIRS=$(patsubst %/Dockerfile,%,$(DOCKERFILES))
 all: $(UPTODATE_FILES)
 
 # And now what goes into each image
-common-build/.src:
-	rm -rf common-build/.src
-	mkdir common-build/.src
-	cp -r $(shell ls | grep -v ^common-build$) common-build/.src
-
-common-build/$(UPTODATE): common-build/.src common-build/*
+common-build/$(UPTODATE): common-build/*
 
 # All the boiler plate for building golang follows:
 SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
@@ -52,6 +47,7 @@ lint test shell: common-build/$(UPTODATE)
 	$(SUDO) docker run $(RM) -ti \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/go/src/github.com/weaveworks/common \
+		-e SRC_NAME=github.com/weaveworks/common \
 		$(IMAGE_PREFIX)/common-build $@
 
 else

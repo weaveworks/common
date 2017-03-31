@@ -2,7 +2,12 @@
 
 set -eu
 
-SRC_PATH=$GOPATH/src/github.com/weaveworks/common
+if [ -n "${SRC_NAME:-}" ]; then
+    SRC_PATH=${SRC_PATH:-$GOPATH/src/$SRC_NAME}
+elif [ -z "${SRC_PATH:-}" ]; then
+    echo "Must set either \$SRC_NAME or \$SRC_PATH."
+    exit 1
+fi
 
 # If we run make directly, any files created on the bind mount
 # will have awkward ownership.  So we switch to a user with the

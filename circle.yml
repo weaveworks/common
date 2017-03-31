@@ -11,9 +11,6 @@ dependencies:
   post:
     # Cache the build image
     - |
-        rm -rf common-build/.src && \
-        mkdir common-build/.src && \
-        cp -r $(ls | grep -v ^common-build$) common-build/.src/ && \
         cd common-build && \
         ../tools/rebuild-image weaveworks/common-build . build.sh Dockerfile && \
         touch .uptodate
@@ -22,3 +19,16 @@ test:
   override:
     - make RM= lint
     - make RM= test
+    - make RM=
+
+deployment:
+  snapshot:
+    branch: master
+    commands:
+      - docker login -e "$DOCKER_REGISTRY_EMAIL" -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_USER"
+        # Base the image tag on the version of the base-image used in the
+        # dockerfile, so "FROM golang:1.8.0-stretch" => "golang-1.8.0-stretch"
+      - |
+        IMAGE_TAG=$(cat common-build/Dockerfile | grep "^FROM " | head -n1 | sed 's/FROM \([[:alpha:]]*\):\(.*\)/\1-\2/') && \
+        docker tag weaveworks/common-build:latest "weaveworks/common-build:$IMAGE_TAG" && \
+        docker push "weaveworks/common-build:$IMAGE_TAG"
