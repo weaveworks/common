@@ -6,7 +6,7 @@
 #
 # For shell files, it runs shfmt. If you don't have that installed, you can get
 # it with:
-#   go get -u github.com/mvdan/sh/cmd/shfmt
+#   go get -u gopkg.in/mvdan/sh.v1/cmd/shfmt
 #
 # With no arguments, it lints the current files staged
 # for git commit.  Or you can pass it explicit filenames
@@ -21,6 +21,7 @@ LINT_IGNORE_FILE=${LINT_IGNORE_FILE:-".lintignore"}
 
 IGNORE_LINT_COMMENT=
 IGNORE_SPELLINGS=
+PARALLEL=
 while true; do
     case "$1" in
         -nocomment)
@@ -34,6 +35,10 @@ while true; do
         -ignorespelling)
             IGNORE_SPELLINGS="$2,$IGNORE_SPELLINGS"
             shift 2
+            ;;
+        -p)
+            PARALLEL=1
+            shift 1
             ;;
         *)
             break
@@ -134,6 +139,20 @@ lint_tf() {
     return $lint_result
 }
 
+lint_md() {
+    local filename="$1"
+    local lint_result=0
+
+    for i in '=======' '>>>>>>>'; do
+        if grep -q "${i}" "${filename}"; then
+            lint_result=1
+            echo "${filename}: bad merge/rebase!"
+        fi
+    done
+
+    return $lint_result
+}
+
 lint() {
     filename="$1"
     ext="${filename##*\.}"
@@ -159,6 +178,7 @@ lint() {
         go) lint_go "${filename}" || lint_result=1 ;;
         sh) lint_sh "${filename}" || lint_result=1 ;;
         tf) lint_tf "${filename}" || lint_result=1 ;;
+        md) lint_md "${filename}" || lint_result=1 ;;
     esac
 
     spell_check "${filename}" || lint_result=1
@@ -179,7 +199,7 @@ matches_any() {
     local patterns="$2"
     while read -r pattern; do
         # shellcheck disable=SC2053
-        # Use the [[ operator without quotes on $pattern 
+        # Use the [[ operator without quotes on $pattern
         # in order to "glob" the provided filename:
         [[ "$filename" == $pattern ]] && return 0
     done <<<"$patterns"
@@ -189,7 +209,8 @@ matches_any() {
 filter_out() {
     local patterns_file="$1"
     if [ -n "$patterns_file" ] && [ -r "$patterns_file" ]; then
-        local patterns=$(sed '/^#.*$/d ; /^\s*$/d' "$patterns_file") # Remove blank lines and comments before we start iterating.
+        local patterns
+        patterns=$(sed '/^#.*$/d ; /^\s*$/d' "$patterns_file") # Remove blank lines and comments before we start iterating.
         [ -n "$DEBUG" ] && echo >&2 "> Filters:" && echo >&2 "$patterns"
         local filtered_out=()
         while read -r filename; do
@@ -203,10 +224,16 @@ filter_out() {
 
 list_files() {
     if [ $# -gt 0 ]; then
-        git ls-files --exclude-standard | grep -vE '(^|/)vendor/'
+        find "$@" | grep -vE '(^|/)vendor/'
     else
-        git diff --cached --name-only
+        git ls-files --exclude-standard | grep -vE '(^|/)vendor/'
     fi
 }
 
-list_files "$@" | filter_out "$LINT_IGNORE_FILE" | lint_files
+if [ $# = 1 ] && [ -f "$1" ]; then
+    lint "$1"
+elif [ -n "$PARALLEL" ]; then
+    list_files "$@" | filter_out "$LINT_IGNORE_FILE" | xargs -n1 -P16 "$0"
+else
+    list_files "$@" | filter_out "$LINT_IGNORE_FILE" | lint_files
+fi
