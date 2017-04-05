@@ -4,7 +4,12 @@ RUN apt-get update && apt-get install -y python-requests python-yaml file jq unz
 RUN go clean -i net && \
 	go install -tags netgo std && \
 	go install -race -tags netgo std
+COPY .src/ /go/src/github.com/weaveworks/common
+RUN go get -tags netgo -t github.com/weaveworks/common/... && \
+	rm -rf /go/src/github.com/weaveworks/common
 RUN go get -tags netgo \
+		github.com/golang/dep/... \
+		github.com/FiloSottile/gvt \
 		github.com/fzipp/gocyclo \
 		github.com/golang/lint/golint \
 		github.com/kisielk/errcheck \
