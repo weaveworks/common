@@ -24,6 +24,7 @@ DOCKER_IMAGE_DIRS=$(patsubst %/Dockerfile,%,$(DOCKERFILES))
 all: $(UPTODATE_FILES)
 
 # And now what goes into each image
+# And now what goes into each image
 common-build/.src:
 	rm -rf common-build/.src
 	mkdir common-build/.src
@@ -52,6 +53,7 @@ lint test shell: common-build/$(UPTODATE)
 	$(SUDO) docker run $(RM) -ti \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/go/src/github.com/weaveworks/common \
+		-e SRC_NAME=github.com/weaveworks/common \
 		$(IMAGE_PREFIX)/common-build $@
 
 else
@@ -69,4 +71,4 @@ endif
 
 clean:
 	go clean ./...
-	rm -rf $(UPTODATE_FILES)
+	rm -rf $(UPTODATE_FILES) common-build/.src
