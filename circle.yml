@@ -2,22 +2,22 @@ machine:
   services:
     - docker
   environment:
-    GOPATH: /home/ubuntu
-    PATH: $PATH:$HOME/.local/bin
+    REPO_ROOT: ${HOME}/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}
 
 dependencies:
   cache_directories:
     - "~/docker"
   post:
+    # Get the dependencies
+    - mkdir -p ${REPO_ROOT} && cp -r ${HOME}/${CIRCLE_PROJECT_REPONAME} ${REPO_ROOT}
+    - go get -u github.com/golang/dep/cmd/dep && cd ${REPO_ROOT}/${CIRCLE_PROJECT_REPONAME} && dep ensure
     # Cache the build image
     - |
-        cd common-build && \
+        cd ${REPO_ROOT}/${CIRCLE_PROJECT_REPONAME}/common-build && \
         ../tools/rebuild-image weaveworks/common-build . build.sh Dockerfile && \
         touch .uptodate
-    # Get the dependencies
-    - go get -u github.com/golang/dep/cmd/dep && dep ensure
 
 test:
   override:
-    - make RM= lint
-    - make RM= test
+    - cd ${REPO_ROOT}/${CIRCLE_PROJECT_REPONAME}; make RM= lint
+    - cd ${REPO_ROOT}/${CIRCLE_PROJECT_REPONAME}; make RM= test
