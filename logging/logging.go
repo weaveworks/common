@@ -6,7 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/weaveworks/common/user"
 )
 
 // Setup configures logging output to stderr, sets the log level and sets the formatter.
@@ -42,4 +45,22 @@ func (f *textFormatter) Format(entry *log.Entry) ([]byte, error) {
 
 	b.WriteByte('\n')
 	return b.Bytes(), nil
+}
+
+// WithContext returns a logger that has information from the context as fields.
+//
+// e.g.
+//     logger := logging.WithContext(ctx)
+//     logger.Errorf("Some error")
+func WithContext(ctx context.Context) *log.Entry {
+	fields := log.Fields{}
+	userID, err := user.ExtractUserID(ctx)
+	if err != nil {
+		fields["userID"] = userID
+	}
+	orgID, err := user.ExtractOrgID(ctx)
+	if err != nil {
+		fields["orgID"] = orgID
+	}
+	return log.WithFields(fields)
 }
