@@ -56,7 +56,7 @@ func (s Server) Handle(ctx context.Context, r *HTTPRequest) (*HTTPResponse, erro
 		Body:    recorder.Body.Bytes(),
 	}
 	if recorder.Code/100 == 5 {
-		return nil, errorFromResponse(resp)
+		return nil, errorFromHTTPResponse(resp)
 	}
 	return resp, err
 }
@@ -148,7 +148,7 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Some errors will acutally contain a valid resp, just need to unpack it
 		var ok bool
-		resp, ok = responseFromError(err)
+		resp, ok = httpResponseFromError(err)
 
 		if !ok {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -164,7 +164,7 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func errorFromResponse(resp *HTTPResponse) error {
+func errorFromHTTPResponse(resp *HTTPResponse) error {
 	a, err := ptypes.MarshalAny(resp)
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func errorFromResponse(resp *HTTPResponse) error {
 	})
 }
 
-func responseFromError(err error) (*HTTPResponse, bool) {
+func httpResponseFromError(err error) (*HTTPResponse, bool) {
 	s, ok := status.FromError(err)
 	if !ok {
 		fmt.Println("not status")
