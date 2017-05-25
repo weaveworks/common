@@ -146,7 +146,7 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := c.client.Handle(r.Context(), req)
 	if err != nil {
-		// Some errors will acutally contain a valid resp, just need to unpack it
+		// Some errors will actually contain a valid resp, just need to unpack it
 		var ok bool
 		resp, ok = httpResponseFromError(err)
 
