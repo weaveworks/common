@@ -17,7 +17,7 @@ dependencies:
     - |
         curl -fsSLo dep 'https://drive.google.com/uc?export=download&id=0BwqTw528sZRIUzExY29ZMm5LVTQ' && \
         echo "f006f1e41b177e84df36116e08d23f364b7f2d7549c45221c6c7e90b2148cb7f  dep" | sha256sum -c && \
-        chmod +x dep && mv dep ${HOME}/.go_workspace/bin/ && \
+        chmod +x dep && mkdir -p ${HOME}/.go_workspace/bin/ && mv dep ${HOME}/.go_workspace/bin/ && \
         cd ${REPO_ROOT}/${CIRCLE_PROJECT_REPONAME} && dep ensure -v
 
     # Cache the build image
