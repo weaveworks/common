@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package types;
+package httpgrpc;
 
 service HTTP {
   rpc Handle(HTTPRequest) returns (HTTPResponse) {};

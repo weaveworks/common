@@ -20,7 +20,7 @@ import (
 
 	"github.com/weaveworks-experiments/loki/pkg/client"
 	"github.com/weaveworks/common/httpgrpc"
-	"github.com/weaveworks/common/httpgrpc/types"
+	httpgrpc_server "github.com/weaveworks/common/httpgrpc/server"
 	"github.com/weaveworks/common/middleware"
 	"github.com/weaveworks/common/signals"
 )
@@ -150,7 +150,7 @@ func (s *Server) Run() {
 
 	// Setup gRPC server
 	// for HTTP over gRPC, ensure we don't double-count the middleware
-	types.RegisterHTTPServer(s.GRPC, httpgrpc.NewServer(s.HTTP))
+	httpgrpc.RegisterHTTPServer(s.GRPC, httpgrpc_server.NewServer(s.HTTP))
 	go s.GRPC.Serve(s.grpcListener)
 	defer s.GRPC.GracefulStop()
 
