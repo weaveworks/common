@@ -11,18 +11,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/mwitkow/go-grpc-middleware"
 	"github.com/opentracing/opentracing-go"
-	"github.com/prometheus/common/log"
 	"github.com/sercand/kuberesolver"
 	"golang.org/x/net/context"
-	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/status"
 
+	"github.com/weaveworks/common/httpgrpc/types"
 	"github.com/weaveworks/common/middleware"
 )
 
@@ -40,7 +36,7 @@ func NewServer(handler http.Handler) *Server {
 }
 
 // Handle implements HTTPServer.
-func (s Server) Handle(ctx context.Context, r *HTTPRequest) (*HTTPResponse, error) {
+func (s Server) Handle(ctx context.Context, r *types.HTTPRequest) (*types.HTTPResponse, error) {
 	req, err := http.NewRequest(r.Method, r.Url, ioutil.NopCloser(bytes.NewReader(r.Body)))
 	if err != nil {
 		return nil, err
@@ -50,13 +46,13 @@ func (s Server) Handle(ctx context.Context, r *HTTPRequest) (*HTTPResponse, erro
 	req.RequestURI = r.Url
 	recorder := httptest.NewRecorder()
 	s.handler.ServeHTTP(recorder, req)
-	resp := &HTTPResponse{
+	resp := &types.HTTPResponse{
 		Code:    int32(recorder.Code),
 		Headers: fromHeader(recorder.Header()),
 		Body:    recorder.Body.Bytes(),
 	}
 	if recorder.Code/100 == 5 {
-		return nil, errorFromHTTPResponse(resp)
+		return nil, types.ErrorFromHTTPResponse(resp)
 	}
 	return resp, err
 }
@@ -67,7 +63,7 @@ type Client struct {
 	service   string
 	namespace string
 	port      string
-	client    HTTPClient
+	client    types.HTTPClient
 	conn      *grpc.ClientConn
 }
 
@@ -125,7 +121,7 @@ func NewClient(address string) (*Client, error) {
 	}
 
 	return &Client{
-		client: NewHTTPClient(conn),
+		client: types.NewHTTPClient(conn),
 		conn:   conn,
 	}, nil
 }
@@ -137,7 +133,7 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	req := &HTTPRequest{
+	req := &types.HTTPRequest{
 		Method:  r.Method,
 		Url:     r.RequestURI,
 		Body:    body,
@@ -148,7 +144,7 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Some errors will actually contain a valid resp, just need to unpack it
 		var ok bool
-		resp, ok = httpResponseFromError(err)
+		resp, ok = types.HTTPResponseFromError(err)
 
 		if !ok {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -164,50 +160,16 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func errorFromHTTPResponse(resp *HTTPResponse) error {
-	a, err := ptypes.MarshalAny(resp)
-	if err != nil {
-		return err
-	}
-
-	return status.ErrorProto(&spb.Status{
-		Code:    resp.Code,
-		Message: string(resp.Body),
-		Details: []*any.Any{a},
-	})
-}
-
-func httpResponseFromError(err error) (*HTTPResponse, bool) {
-	s, ok := status.FromError(err)
-	if !ok {
-		fmt.Println("not status")
-		return nil, false
-	}
-
-	status := s.Proto()
-	if len(status.Details) != 1 {
-		return nil, false
-	}
-
-	var resp HTTPResponse
-	if err := ptypes.UnmarshalAny(status.Details[0], &resp); err != nil {
-		log.Errorf("Got error containing non-response: %v", err)
-		return nil, false
-	}
-
-	return &resp, true
-}
-
-func toHeader(hs []*Header, header http.Header) {
+func toHeader(hs []*types.Header, header http.Header) {
 	for _, h := range hs {
 		header[h.Key] = h.Values
 	}
 }
 
-func fromHeader(hs http.Header) []*Header {
-	result := make([]*Header, 0, len(hs))
+func fromHeader(hs http.Header) []*types.Header {
+	result := make([]*types.Header, 0, len(hs))
 	for k, vs := range hs {
-		result = append(result, &Header{
+		result = append(result, &types.Header{
 			Key:    k,
 			Values: vs,
 		})
