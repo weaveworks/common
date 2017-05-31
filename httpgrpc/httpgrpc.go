@@ -38,7 +38,6 @@ func ErrorFromHTTPResponse(resp *HTTPResponse) error {
 func HTTPResponseFromError(err error) (*HTTPResponse, bool) {
 	s, ok := status.FromError(err)
 	if !ok {
-		fmt.Printf("not status, %v\n", err)
 		return nil, false
 	}
 

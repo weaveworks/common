@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
@@ -13,9 +12,8 @@ import (
 	google_protobuf "github.com/golang/protobuf/ptypes/empty"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/middleware"
+	"github.com/weaveworks/common/httpgrpc"
 	"golang.org/x/net/context"
-	spb "google.golang.org/genproto/googleapis/rpc/status"
 )
 
 type FakeServer struct{}
@@ -25,30 +23,15 @@ func (f FakeServer) FailWithError(ctx context.Context, req *google_protobuf.Empt
 }
 
 func (f FakeServer) FailWithHTTPError(ctx context.Context, req *FailWithHTTPErrorRequest) (*google_protobuf.Empty, error) {
-	return nil, errors.New(strconv.Itoa(int(req.Code)))
+	return nil, httpgrpc.Errorf(int(req.Code), strconv.Itoa(int(req.Code)))
 }
 
 func (f FakeServer) Succeed(ctx context.Context, req *google_protobuf.Empty) (*google_protobuf.Empty, error) {
 	return &google_protobuf.Empty{}, nil
 }
 
-// errorToStatus test converter to allow any type of http status to be raised
-func errorToStatus(err error) (int32, string, error) {
-	msg := err.Error()
-	fmt.Println(msg)
-	code, codeErr := strconv.Atoi(msg)
-	if codeErr != nil {
-		return 0, "", codeErr
-	}
-	return int32(code), msg, nil
-}
-
-func TestErrorMiddleware(t *testing.T) {
-	errorInterceptor := middleware.ServerErrorToStatusInterceptor(errorToStatus)
-	cfg := Config{
-		GRPCListenPort: 1234,
-		GRPCMiddleware: []grpc.UnaryServerInterceptor{errorInterceptor},
-	}
+func TestErrorInstrumentationMiddleware(t *testing.T) {
+	cfg := Config{GRPCListenPort: 1234}
 	server, err := New(cfg)
 	require.NoError(t, err)
 
@@ -71,14 +54,17 @@ func TestErrorMiddleware(t *testing.T) {
 	res, err = client.FailWithError(context.Background(), &empty)
 	require.Nil(t, res)
 	require.Error(t, err)
+
 	s, ok := status.FromError(err)
 	require.True(t, ok)
 	require.Equal(t, "test error", s.Message())
 
 	res, err = client.FailWithHTTPError(context.Background(), &FailWithHTTPErrorRequest{Code: http.StatusPaymentRequired})
 	require.Nil(t, res)
-	require.Error(t, err)
-	require.Equal(t, status.ErrorProto(&spb.Status{Code: 402, Message: "402"}), err)
+	errResp, ok := httpgrpc.HTTPResponseFromError(err)
+	require.True(t, ok)
+	require.Equal(t, int32(http.StatusPaymentRequired), errResp.Code)
+	require.Equal(t, "402", string(errResp.Body))
 
 	conn.Close()
 
