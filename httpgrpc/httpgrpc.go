@@ -10,6 +10,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Errorf returns a HTTP gRPC error than is correctly forwarded over
+// gRPC, and can eventually be converted back to a HTTP response with
+// HTTPResponseFromError.
+func Errorf(code int, tmpl string, args ...interface{}) error {
+	return ErrorFromHTTPResponse(&HTTPResponse{
+		Code: int32(code),
+		Body: []byte(fmt.Sprintf(tmpl, args...)),
+	})
+}
+
 // ErrorFromHTTPResponse converts an HTTP response into a grpc error
 func ErrorFromHTTPResponse(resp *HTTPResponse) error {
 	a, err := ptypes.MarshalAny(resp)
