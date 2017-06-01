@@ -47,20 +47,11 @@ func (f *textFormatter) Format(entry *log.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// WithContext returns a logger that has information from the context as fields.
+// With returns a log entry with common Weaveworks logging information.
 //
 // e.g.
-//     logger := logging.WithContext(ctx)
+//     logger := logging.With(ctx)
 //     logger.Errorf("Some error")
-func WithContext(ctx context.Context) *log.Entry {
-	fields := log.Fields{}
-	userID, err := user.ExtractUserID(ctx)
-	if err != nil {
-		fields["userID"] = userID
-	}
-	orgID, err := user.ExtractOrgID(ctx)
-	if err != nil {
-		fields["orgID"] = orgID
-	}
-	return log.WithFields(fields)
+func With(ctx context.Context) *log.Entry {
+	return log.WithFields(user.LogFields(ctx))
 }
