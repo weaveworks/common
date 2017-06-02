@@ -9,11 +9,19 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+
+	"github.com/weaveworks/common/user"
 )
 
 // Log middleware logs http requests
 type Log struct {
 	LogRequestHeaders bool // LogRequestHeaders true -> dump http headers at debug log level
+
+}
+
+// logWithRequest information from the request and context as fields.
+func logWithRequest(r *http.Request) *log.Entry {
+	return log.WithFields(user.LogFields(r.Context()))
 }
 
 // Wrap implements Middleware
@@ -25,17 +33,17 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 			// Log headers before running 'next' in case other interceptors change the data.
 			headers, err := httputil.DumpRequest(r, false)
 			if err != nil {
-				log.Warnf("Could not dump request headers: %v", err)
+				logWithRequest(r).Warnf("Could not dump request headers: %v", err)
 				return
 			}
-			log.Debugf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
+			logWithRequest(r).Debugf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
 		}
 		i := &interceptor{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(i, r)
 		if 100 <= i.statusCode && i.statusCode < 400 {
-			log.Debugf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
+			logWithRequest(r).Debugf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
 		} else {
-			log.Warnf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
+			logWithRequest(r).Warnf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
 		}
 	})
 }
