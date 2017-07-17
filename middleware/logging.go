@@ -32,7 +32,7 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 		}
 		i := &interceptor{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(i, r)
-		if 100 <= i.statusCode && i.statusCode < 400 {
+		if 100 <= i.statusCode && (i.statusCode < 400 || i.statusCode < 429) {
 			log.Debugf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
 		} else {
 			log.Warnf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
