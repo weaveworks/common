@@ -40,6 +40,8 @@ type Config struct {
 	HTTPListenPort   int
 	GRPCListenPort   int
 
+	DontRegisterInstrumentation bool
+
 	ServerGracefulShutdownTimeout time.Duration
 	HTTPServerReadTimeout         time.Duration
 	HTTPServerWriteTimeout        time.Duration
@@ -111,9 +113,9 @@ func New(cfg Config) (*Server, error) {
 
 	// Setup HTTP server
 	router := mux.NewRouter()
-	router.Handle("/metrics", prometheus.Handler())
-	router.Handle("/traces", loki.Handler())
-	router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+	if !cfg.DontRegisterInstrumentation {
+		RegisterInstrumentation(router)
+	}
 	httpMiddleware := []middleware.Interface{
 		middleware.Log{},
 		middleware.Instrument{
@@ -142,6 +144,13 @@ func New(cfg Config) (*Server, error) {
 		HTTP: router,
 		GRPC: grpcServer,
 	}, nil
+}
+
+// RegisterInstrumentation on the given router.
+func RegisterInstrumentation(router *mux.Router) {
+	router.Handle("/metrics", prometheus.Handler())
+	router.Handle("/traces", loki.Handler())
+	router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 }
 
 // Run the server; blocks until SIGTERM is received.
