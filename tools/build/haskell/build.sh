@@ -9,4 +9,4 @@ if [ -z "${SRC_PATH:-}" ]; then
     exit 1
 fi
 
-make -C $SRC_PATH BUILD_IN_CONTAINER=false $*
+make -C "$SRC_PATH" BUILD_IN_CONTAINER=false "$@"
