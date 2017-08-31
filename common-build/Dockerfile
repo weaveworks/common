@@ -10,6 +10,6 @@ RUN go get -tags netgo \
 		github.com/kisielk/errcheck \
 		github.com/mjibson/esc \
 		github.com/client9/misspell/cmd/misspell \
-		github.com/mvdan/sh/cmd/shfmt
+		mvdan.cc/sh/cmd/shfmt
 COPY build.sh /
 ENTRYPOINT ["/build.sh"]
