@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"net"
 	"net/http"
@@ -34,7 +35,8 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 			headers = nil
 			logWithRequest(r).Errorf("Could not dump request headers: %v", err)
 		}
-		wrapped := newBadResponseLoggingWriter(w)
+		var buf bytes.Buffer
+		wrapped := newBadResponseLoggingWriter(w, &buf)
 		next.ServeHTTP(wrapped, r)
 		statusCode := wrapped.statusCode
 		if 100 <= statusCode && statusCode < 400 {
@@ -45,7 +47,7 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 		} else {
 			logWithRequest(r).Warnf("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
 			logWithRequest(r).Warnf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
-			logWithRequest(r).Warnf("Response: %s", wrapped.dumpResponseBody())
+			logWithRequest(r).Warnf("Response: %s", buf.Bytes())
 		}
 	})
 }

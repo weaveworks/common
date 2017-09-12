@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 )
@@ -16,14 +17,14 @@ const (
 // responses) to a buffer.
 type badResponseLoggingWriter struct {
 	rw            http.ResponseWriter
-	buffer        bytes.Buffer
+	buffer        io.Writer
 	logBody       bool
 	bodyBytesLeft int
 	statusCode    int
 }
 
 // newBadResponseLoggingWriter makes a new badResponseLoggingWriter.
-func newBadResponseLoggingWriter(rw http.ResponseWriter) *badResponseLoggingWriter {
+func newBadResponseLoggingWriter(rw http.ResponseWriter, buffer io.Writer) *badResponseLoggingWriter {
 	return &badResponseLoggingWriter{
 		rw:            rw,
 		logBody:       false,
@@ -64,14 +65,10 @@ func (b *badResponseLoggingWriter) Hijack() (net.Conn, *bufio.ReadWriter, error)
 	return nil, nil, fmt.Errorf("badResponseLoggingWriter: can't cast underlying response writer to Hijacker")
 }
 
-func (b *badResponseLoggingWriter) dumpResponseBody() []byte {
-	return b.buffer.Bytes()
-}
-
 func (b *badResponseLoggingWriter) captureResponseBody(data []byte) {
 	if len(data) > b.bodyBytesLeft {
 		b.buffer.Write(data[:b.bodyBytesLeft])
-		b.buffer.WriteString("...")
+		io.WriteString(b.buffer, "...")
 		b.bodyBytesLeft = 0
 		b.logBody = false
 	} else {
