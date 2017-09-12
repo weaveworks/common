@@ -2,12 +2,11 @@ package middleware
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
-	"net/http/httptest"
-	"net/http/httputil"
 )
 
 const (
@@ -94,7 +93,7 @@ func (m *MultiResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 // Using this means holding an extra copy of the request and response headers
 // in memory.
 type badResponseLogger struct {
-	recorder      *httptest.ResponseRecorder
+	buffer        bytes.Buffer
 	logBody       bool
 	bodyBytesLeft int
 	statusCode    int
@@ -103,19 +102,18 @@ type badResponseLogger struct {
 // newBadResponseLogger makes a new badResponseLogger.
 func newBadResponseLogger() *badResponseLogger {
 	return &badResponseLogger{
-		recorder:      httptest.NewRecorder(),
 		logBody:       false,
 		bodyBytesLeft: maxResponseBodyInLogs,
 	}
 }
 
-func (b *badResponseLogger) dumpResponse() ([]byte, error) {
-	return httputil.DumpResponse(b.recorder.Result(), true)
+func (b *badResponseLogger) dumpResponse() []byte {
+	return b.buffer.Bytes()
 }
 
 // Header implements http.ResponseWriter.
 func (b *badResponseLogger) Header() http.Header {
-	return b.recorder.Header()
+	return http.Header{}
 }
 
 // WriteHeader implements http.ResponseWriter. It will immediately log the
@@ -140,12 +138,12 @@ func (b *badResponseLogger) Write(data []byte) (int, error) {
 	}
 
 	if len(data) > b.bodyBytesLeft {
-		b.recorder.Write(data[:b.bodyBytesLeft])
-		b.recorder.WriteString("...")
+		b.buffer.Write(data[:b.bodyBytesLeft])
+		b.buffer.WriteString("...")
 		b.bodyBytesLeft = 0
 		b.logBody = false
 	} else {
-		b.recorder.Write(data)
+		b.buffer.Write(data)
 		b.bodyBytesLeft -= len(data)
 	}
 	// As far as any caller is concerned, we've written the whole response.
