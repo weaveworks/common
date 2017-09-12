@@ -34,18 +34,18 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 			headers = nil
 			logWithRequest(r).Errorf("Could not dump request headers: %v", err)
 		}
-		i := newBadResponseLogger()
-		wrapped := NewMultiResponseWriter(w, i)
+		wrapped := newBadResponseLoggingWriter(w)
 		next.ServeHTTP(wrapped, r)
-		if 100 <= i.statusCode && i.statusCode < 400 {
-			logWithRequest(r).Debugf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
+		statusCode := wrapped.statusCode
+		if 100 <= statusCode && statusCode < 400 {
+			logWithRequest(r).Debugf("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
 			if l.LogRequestHeaders && headers != nil {
 				logWithRequest(r).Debugf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
 			}
 		} else {
-			logWithRequest(r).Warnf("%s %s (%d) %s", r.Method, uri, i.statusCode, time.Since(begin))
+			logWithRequest(r).Warnf("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
 			logWithRequest(r).Warnf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
-			logWithRequest(r).Warnf("Response: %s", i.dumpResponse())
+			logWithRequest(r).Warnf("Response: %s", wrapped.dumpResponseBody())
 		}
 	})
 }
