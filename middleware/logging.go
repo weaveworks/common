@@ -47,7 +47,7 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 			logWithRequest(r).Warnf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
 			response, err := i.dumpResponse()
 			if err != nil {
-				logWithRequest(r).Errorf("Could not dump response headers: %v", err)
+				logWithRequest(r).Errorf("Could not dump response: %v", err)
 			} else {
 				logWithRequest(r).Warnf("Response: %s", response)
 			}

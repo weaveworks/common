@@ -95,9 +95,9 @@ func (m *MultiResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 // in memory.
 type badResponseLogger struct {
 	recorder      *httptest.ResponseRecorder
-	statusCode    int
 	logBody       bool
 	bodyBytesLeft int
+	statusCode    int
 }
 
 // newBadResponseLogger makes a new badResponseLogger.
@@ -106,7 +106,6 @@ func newBadResponseLogger() *badResponseLogger {
 		recorder:      httptest.NewRecorder(),
 		logBody:       false,
 		bodyBytesLeft: maxResponseBodyInLogs,
-		statusCode:    http.StatusOK,
 	}
 }
 
@@ -123,15 +122,12 @@ func (b *badResponseLogger) Header() http.Header {
 // response headers if `statusCode` is a 5XX.
 func (b *badResponseLogger) WriteHeader(statusCode int) {
 	b.statusCode = statusCode
-	b.recorder.WriteHeader(statusCode)
-	if 100 <= statusCode && statusCode < 500 {
-		return
+	if statusCode >= 500 {
+		b.logBody = true
 	}
-	b.logBody = true
 }
 
-// Write implements http.ResponseWriter. It will log the body up to
-// `maxResponseBodyInLogs` if the response is a 5XX.
+// Write implements http.ResponseWriter.
 func (b *badResponseLogger) Write(data []byte) (int, error) {
 	// If we haven't written the headers yet, then Write is supposed to call
 	// WriteHeader with http.StatusOK. Since we don't want to do anything in
@@ -145,8 +141,9 @@ func (b *badResponseLogger) Write(data []byte) (int, error) {
 
 	if len(data) > b.bodyBytesLeft {
 		b.recorder.Write(data[:b.bodyBytesLeft])
-		b.recorder.WriteString("…")
+		b.recorder.WriteString("...")
 		b.bodyBytesLeft = 0
+		b.logBody = false
 	} else {
 		b.recorder.Write(data)
 		b.bodyBytesLeft -= len(data)
