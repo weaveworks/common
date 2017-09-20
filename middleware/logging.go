@@ -89,6 +89,9 @@ func (i *interceptor) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 
 // LogContext is a middleware to inject the organization and user id into
 // the context. It reads the IDs from named path parameters found in `mux.Vars()`.
+//
+// `logging.With(context.Context)` will read these IDs and append them as fields
+// to log entries.
 type LogContext struct {
 	OrgIDName  string
 	UserIDName string
