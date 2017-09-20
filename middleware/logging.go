@@ -10,6 +10,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/mux"
 
 	"github.com/weaveworks/common/user"
 )
@@ -84,4 +85,29 @@ func (i *interceptor) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 		return nil, nil, fmt.Errorf("interceptor: can't cast parent ResponseWriter to Hijacker")
 	}
 	return hj.Hijack()
+}
+
+// LogContext is a middleware to inject the organization and user id into
+// the context. It reads the IDs from named path parameters found in `mux.Vars()`.
+//
+// `logging.With(context.Context)` will read these IDs and append them as fields
+// to log entries.
+type LogContext struct {
+	OrgIDName  string
+	UserIDName string
+}
+
+// Wrap implements Interface
+func (l LogContext) Wrap(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		ctx := r.Context()
+		if orgID, ok := vars[l.OrgIDName]; ok {
+			ctx = user.InjectOrgID(ctx, orgID)
+		}
+		if userID, ok := vars[l.UserIDName]; ok {
+			ctx = user.InjectUserID(ctx, userID)
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
