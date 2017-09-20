@@ -39,6 +39,11 @@ func (b *badResponseLoggingWriter) Header() http.Header {
 
 // Write writes HTTP response data.
 func (b *badResponseLoggingWriter) Write(data []byte) (int, error) {
+	if b.statusCode == 0 {
+		// WriteHeader has (probably) not been called, so we need to call it with StatusOK to fuflil the interface contract.
+		// https://godoc.org/net/http#ResponseWriter
+		b.WriteHeader(http.StatusOK)
+	}
 	n, err := b.rw.Write(data)
 	if b.logBody {
 		b.captureResponseBody(data)
