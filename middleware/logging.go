@@ -46,7 +46,9 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 			}
 		} else {
 			logWithRequest(r).Warnf("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
-			logWithRequest(r).Warnf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
+			if headers != nil {
+				logWithRequest(r).Warnf("Is websocket request: %v\n%s", IsWSHandshakeRequest(r), string(headers))
+			}
 			logWithRequest(r).Warnf("Response: %s", buf.Bytes())
 		}
 	})
