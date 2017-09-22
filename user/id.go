@@ -16,13 +16,8 @@ const (
 
 // Errors that we return
 const (
-	ErrNoOrgID               = errors.Error("no org id")
-	ErrDifferentOrgIDPresent = errors.Error("different org ID already present")
-	ErrTooManyOrgIDs         = errors.Error("multiple org IDs present")
-
-	ErrNoUserID               = errors.Error("no user id")
-	ErrDifferentUserIDPresent = errors.Error("different user ID already present")
-	ErrTooManyUserIDs         = errors.Error("multiple user IDs present")
+	ErrNoOrgID  = errors.Error("no org id")
+	ErrNoUserID = errors.Error("no user id")
 )
 
 // ExtractOrgID gets the org ID from the context.

@@ -33,19 +33,14 @@ func InjectIntoGRPCRequest(ctx context.Context) (context.Context, error) {
 		md = metadata.New(map[string]string{})
 	}
 	newCtx := ctx
+	md = md.Copy()
 	if orgIDs, ok := md[lowerOrgIDHeaderName]; ok {
-		if len(orgIDs) == 1 {
-			if orgIDs[0] != orgID {
-				return ctx, ErrDifferentOrgIDPresent
-			}
-		} else {
-			return ctx, ErrTooManyOrgIDs
+		if len(orgIDs) != 1 || orgIDs[0] != orgID {
+			md[lowerOrigOrgIDHeaderName] = orgIDs
 		}
-	} else {
-		md = md.Copy()
-		md[lowerOrgIDHeaderName] = []string{orgID}
-		newCtx = metadata.NewOutgoingContext(ctx, md)
 	}
+	md[lowerOrgIDHeaderName] = []string{orgID}
+	newCtx = metadata.NewOutgoingContext(ctx, md)
 
 	return newCtx, nil
 }
