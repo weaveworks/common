@@ -11,8 +11,13 @@ const (
 	orgIDHeaderName  = "X-Scope-OrgID"
 	userIDHeaderName = "X-Scope-UserID"
 
+	// origOrgIDHeaderName is used when a request already contains the header
+	origOrgIDHeaderName  = "X-Orig-Scope-OrgID"
+	origUserIDHeaderName = "X-Orig-Scope-UserID"
+
 	// LowerOrgIDHeaderName as gRPC / HTTP2.0 headers are lowercased.
-	lowerOrgIDHeaderName = "x-scope-orgid"
+	lowerOrgIDHeaderName     = "x-scope-orgid"
+	lowerOrigOrgIDHeaderName = "x-orig-scope-orgid"
 )
 
 // ExtractOrgIDFromHTTPRequest extracts the org ID from the request headers and returns
@@ -33,7 +38,7 @@ func InjectOrgIDIntoHTTPRequest(ctx context.Context, r *http.Request) error {
 	}
 	existingID := r.Header.Get(orgIDHeaderName)
 	if existingID != "" && existingID != orgID {
-		return ErrDifferentOrgIDPresent
+		r.Header.Set(origOrgIDHeaderName, existingID)
 	}
 	r.Header.Set(orgIDHeaderName, orgID)
 	return nil
@@ -57,7 +62,7 @@ func InjectUserIDIntoHTTPRequest(ctx context.Context, r *http.Request) error {
 	}
 	existingID := r.Header.Get(userIDHeaderName)
 	if existingID != "" && existingID != userID {
-		return ErrDifferentUserIDPresent
+		r.Header.Set(origUserIDHeaderName, existingID)
 	}
 	r.Header.Set(userIDHeaderName, userID)
 	return nil
