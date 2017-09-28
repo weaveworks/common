@@ -21,9 +21,17 @@ type EmailMessage struct {
 	Body    string `json:"body"`
 }
 
+type Attachment struct {
+	Fallback string   `json:"fallback,omitempty"`
+	Text     string   `json:"text"`
+	Color    string   `json:"color,omitempty"`
+	Markdown []string `json:"mrkdwn_in,omitempty"`
+}
+
 // SlackMessage contains the required fields for formatting slack messages
 type SlackMessage struct {
-	Text string `json:"text"`
+	Text        string       `json:"text"`
+	Attachments []Attachment `json:"attachments"`
 }
 
 // BrowserMessage contains the required fields for formatting browser notifications
@@ -44,7 +52,7 @@ type event struct {
 	Type       string    `json:"type"`
 	InstanceID string    `json:"instance_id"`
 	Timestamp  time.Time `json:"timestamp"`
-	Messages   *Message  `json:"messages"`
+	Messages   Message   `json:"messages"`
 }
 
 // CreateSender creates a Sender
@@ -54,13 +62,41 @@ func CreateSender(url string) Sender {
 	}
 }
 
+func createMessage(eventType string, timestamp time.Time, text string, attachments []string) Message {
+	var slackAttachments []Attachment
+
+	for i := range attachments {
+		a := attachments[i]
+		slackAttachments = append(slackAttachments, Attachment{
+			Text:     text,
+			Fallback: text,
+			Markdown: []string{a},
+		})
+	}
+	return Message{
+		Browser: BrowserMessage{
+			Type:      eventType,
+			Text:      text,
+			Timestamp: timestamp,
+		},
+		Email: EmailMessage{
+			Subject: eventType,
+			Body:    text,
+		},
+		Slack: SlackMessage{
+			Text:        text,
+			Attachments: slackAttachments,
+		},
+	}
+}
+
 // SendEvent sends an event to the notification service.
-func (s *Sender) SendEvent(et string, instance string, t time.Time, msg *Message) error {
+func (s *Sender) SendEvent(eventType string, instance string, t time.Time, msg string, attachments []string) error {
 	e := event{
-		Type:       et,
+		Type:       eventType,
 		InstanceID: instance,
 		Timestamp:  t,
-		Messages:   msg,
+		Messages:   createMessage(eventType, t, msg, attachments),
 	}
 
 	eventBytes, err := json.Marshal(e)
