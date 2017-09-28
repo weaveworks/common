@@ -16,43 +16,44 @@ type Sender struct {
 }
 
 // EmailMessage contains the required fields for formatting email messages
-type EmailMessage struct {
+type emailMessage struct {
 	Subject string `json:"subject"`
 	Body    string `json:"body"`
 }
 
-type Attachment struct {
-	Fallback string   `json:"fallback,omitempty"`
-	Text     string   `json:"text"`
-	Color    string   `json:"color,omitempty"`
-	Markdown []string `json:"mrkdwn_in,omitempty"`
+type attachment struct {
+	Fallback   string   `json:"fallback,omitempty"`
+	Text       string   `json:"text"`
+	Color      string   `json:"color,omitempty"`
+	MarkdownIn []string `json:"mrkdwn_in,omitempty"`
 }
 
 // SlackMessage contains the required fields for formatting slack messages
-type SlackMessage struct {
+type slackMessage struct {
 	Text        string       `json:"text"`
-	Attachments []Attachment `json:"attachments"`
+	Attachments []attachment `json:"attachments"`
 }
 
 // BrowserMessage contains the required fields for formatting browser notifications
-type BrowserMessage struct {
+type browserMessage struct {
 	Type      string    `json:"type"`
 	Text      string    `json:"text"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 // Message contains the mappings for formatting notification messages
-type Message struct {
-	Browser BrowserMessage `json:"browser"`
-	Slack   SlackMessage   `json:"slack"`
-	Email   EmailMessage   `json:"email"`
+type message struct {
+	Browser  browserMessage `json:"browser"`
+	Slack    slackMessage   `json:"slack"`
+	Email    emailMessage   `json:"email"`
+	Fallback string         `json:"fallback"`
 }
 
 type event struct {
 	Type       string    `json:"type"`
 	InstanceID string    `json:"instance_id"`
 	Timestamp  time.Time `json:"timestamp"`
-	Messages   Message   `json:"messages"`
+	Messages   message   `json:"messages"`
 }
 
 // CreateSender creates a Sender
@@ -62,28 +63,30 @@ func CreateSender(url string) Sender {
 	}
 }
 
-func createMessage(eventType string, timestamp time.Time, text string, attachments []string) Message {
-	var slackAttachments []Attachment
+func createMessage(eventType string, timestamp time.Time, text string, attachments []string) message {
+	var slackAttachments []attachment
 
 	for i := range attachments {
-		a := attachments[i]
-		slackAttachments = append(slackAttachments, Attachment{
-			Text:     text,
-			Fallback: text,
-			Markdown: []string{a},
+		raw := attachments[i]
+		slackAttachments = append(slackAttachments, attachment{
+			Fallback:   text,
+			Text:       raw,
+			Color:      "#439FE0",
+			MarkdownIn: []string{"text"},
 		})
 	}
-	return Message{
-		Browser: BrowserMessage{
+	return message{
+		Fallback: text,
+		Browser: browserMessage{
 			Type:      eventType,
 			Text:      text,
 			Timestamp: timestamp,
 		},
-		Email: EmailMessage{
+		Email: emailMessage{
 			Subject: eventType,
 			Body:    text,
 		},
-		Slack: SlackMessage{
+		Slack: slackMessage{
 			Text:        text,
 			Attachments: slackAttachments,
 		},
