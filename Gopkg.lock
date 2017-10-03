@@ -8,12 +8,6 @@
   version = "v1.11.0"
 
 [[projects]]
-  name = "github.com/Sirupsen/logrus"
-  packages = [".","hooks/test"]
-  revision = "ba1b36c82c5e05c4f912a88eab0dcd91a171688f"
-  version = "v0.11.5"
-
-[[projects]]
   name = "github.com/apache/thrift"
   packages = ["lib/go/thrift"]
   revision = "b2a4d4ae21c789b689dd162deb819665567f481c"
@@ -231,7 +225,7 @@
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
-  packages = ["."]
+  packages = [".","hooks/test"]
   revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
   version = "v1.0.3"
 
@@ -292,6 +286,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b602db993a398a746557adcec269b8beaae300e837297184dd667bfe2ddcaddf"
+  inputs-digest = "a3ad52c3fcabeb3e024e95fba61b5871585cda618b02d074562c55455874008a"
   solver-name = "gps-cdcl"
   solver-version = 1
