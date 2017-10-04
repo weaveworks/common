@@ -116,12 +116,6 @@
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
 
 [[projects]]
-  name = "github.com/marccarre/promrus"
-  packages = ["."]
-  revision = "6f9713cf3e9bc69424a25d8d0f696f7ce7b4ff2b"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "d228849504861217f796da67fae4f6e347643f15"
@@ -242,6 +236,12 @@
   revision = "17ff1516db3dffe25452b4cbf6e6412f303cddea"
 
 [[projects]]
+  name = "github.com/weaveworks/promrus"
+  packages = ["."]
+  revision = "6f9713cf3e9bc69424a25d8d0f696f7ce7b4ff2b"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
@@ -286,6 +286,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3ad52c3fcabeb3e024e95fba61b5871585cda618b02d074562c55455874008a"
+  inputs-digest = "f0129b411593e3ada6198352b8c9d637371fe1cdf2d606a29779ced5ac1b3153"
   solver-name = "gps-cdcl"
   solver-version = 1
