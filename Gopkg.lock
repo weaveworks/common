@@ -8,12 +8,6 @@
   version = "v1.11.0"
 
 [[projects]]
-  name = "github.com/Sirupsen/logrus"
-  packages = [".","hooks/test"]
-  revision = "ba1b36c82c5e05c4f912a88eab0dcd91a171688f"
-  version = "v0.11.5"
-
-[[projects]]
   name = "github.com/apache/thrift"
   packages = ["lib/go/thrift"]
   revision = "b2a4d4ae21c789b689dd162deb819665567f481c"
@@ -224,6 +218,12 @@
   revision = "2f561e34ecb6206fcad82f0c5842379188d8db40"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = [".","hooks/test"]
+  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
+  version = "v1.0.3"
+
+[[projects]]
   name = "github.com/stretchr/testify"
   packages = ["assert","require"]
   revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
@@ -236,6 +236,18 @@
   revision = "17ff1516db3dffe25452b4cbf6e6412f303cddea"
 
 [[projects]]
+  name = "github.com/weaveworks/promrus"
+  packages = ["."]
+  revision = "6f9713cf3e9bc69424a25d8d0f696f7ce7b4ff2b"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
@@ -244,7 +256,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = ["unix","windows"]
   revision = "9f30dcbe5be197894515a338a9bda9253567ea8f"
 
 [[projects]]
@@ -274,6 +286,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "57f4df946c97e1fcb83ee6757a832e47d43fc3e3356613cd4a632a9b321b92c7"
+  inputs-digest = "f0129b411593e3ada6198352b8c9d637371fe1cdf2d606a29779ced5ac1b3153"
   solver-name = "gps-cdcl"
   solver-version = 1
