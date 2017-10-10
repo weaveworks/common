@@ -238,8 +238,8 @@
 [[projects]]
   name = "github.com/weaveworks/promrus"
   packages = ["."]
-  revision = "6f9713cf3e9bc69424a25d8d0f696f7ce7b4ff2b"
-  version = "v1.0.0"
+  revision = "0599d764e054d4e983bb120e30759179fafe3942"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
