@@ -36,7 +36,7 @@ func TimeRequest(ctx context.Context, operation string, coll instrument.Collecto
 }
 
 // TimeRequestHistogram performs an HTTP client request and records the duration in a histogram.
-// Try to use TimeRequest() to avoid creation of a collector on every request.
+// Deprecated: try to use TimeRequest() to avoid creation of a collector on every request
 func TimeRequestHistogram(ctx context.Context, operation string, metric *prometheus.HistogramVec, client Requester, request *http.Request) (*http.Response, error) {
 	coll := instrument.NewHistogramCollector(metric)
 	return TimeRequest(ctx, operation, coll, client, request)
