@@ -16,8 +16,8 @@ type Requester interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// TimeRequestHistogram performs an HTTP client request and records the duration in a histogram
-func TimeRequestHistogram(ctx context.Context, operation string, metric *prometheus.HistogramVec, client Requester, request *http.Request) (*http.Response, error) {
+// TimeRequest performs an HTTP client request and records the duration in a histogram.
+func TimeRequest(ctx context.Context, operation string, coll instrument.Collector, client Requester, request *http.Request) (*http.Response, error) {
 	var response *http.Response
 	doRequest := func(_ context.Context) error {
 		var err error
@@ -30,8 +30,14 @@ func TimeRequestHistogram(ctx context.Context, operation string, metric *prometh
 		}
 		return "error"
 	}
-	coll := instrument.NewHistogramCollector(metric)
 	err := instrument.CollectedRequest(ctx, fmt.Sprintf("%s %s", request.Method, operation),
 		coll, toStatusCode, doRequest)
 	return response, err
+}
+
+// TimeRequestHistogram performs an HTTP client request and records the duration in a histogram.
+// Try to use TimeRequest() to avoid creation of a collector on every request.
+func TimeRequestHistogram(ctx context.Context, operation string, metric *prometheus.HistogramVec, client Requester, request *http.Request) (*http.Response, error) {
+	coll := instrument.NewHistogramCollector(metric)
+	return TimeRequest(ctx, operation, coll, client, request)
 }
