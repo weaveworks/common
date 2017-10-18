@@ -22,12 +22,14 @@ type TimedClient struct {
 	collector instrument.Collector
 }
 
-// CtxTimedOperationNameKey specifies the operation name location within the context
+type contextKey int
+
+// OperationNameContextKey specifies the operation name location within the context
 // for instrumentation.
-const CtxTimedOperationNameKey = "op"
+const OperationNameContextKey contextKey = 0
 
 // NewTimedClient creates a Requester that instruments requests on `client`.
-func NewTimedClient(client Requester, collector instrument.Collector) Requester {
+func NewTimedClient(client Requester, collector instrument.Collector) *TimedClient {
 	return &TimedClient{
 		client:    client,
 		collector: collector,
@@ -36,11 +38,15 @@ func NewTimedClient(client Requester, collector instrument.Collector) Requester 
 
 // Do executes the request.
 func (c TimedClient) Do(r *http.Request) (*http.Response, error) {
-	operation := r.Context().Value(CtxTimedOperationNameKey).(string)
+	return TimeRequest(r.Context(), c.operationName(r), c.collector, c.client, r)
+}
+
+func (c TimedClient) operationName(r *http.Request) string {
+	operation, _ := r.Context().Value(OperationNameContextKey).(string)
 	if operation == "" {
 		operation = r.URL.Path
 	}
-	return TimeRequest(r.Context(), operation, c.collector, c.client, r)
+	return operation
 }
 
 // TimeRequest performs an HTTP client request and records the duration in a histogram.
