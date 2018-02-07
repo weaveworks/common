@@ -1,0 +1,2 @@
+[prune]
+  non-go = true
