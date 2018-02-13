@@ -13,6 +13,10 @@ import (
 // If jaegerAgentHost is an empty string, tracing is disabled.
 func New(jaegerAgentHost, serviceName, samplerType string, samplerParam float64) io.Closer {
 	if jaegerAgentHost != "" {
+		if samplerType == "" || samplerParam == 0 {
+			samplerType = "ratelimiting"
+			samplerParam = 10.0
+		}
 		cfg := jaegercfg.Configuration{
 			Sampler: &jaegercfg.SamplerConfig{
 				SamplingServerURL: fmt.Sprintf("http://%s:5778/sampling", jaegerAgentHost),
