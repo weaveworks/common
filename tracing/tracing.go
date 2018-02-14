@@ -12,26 +12,16 @@ import (
 
 // New registers Jaeger as the OpenTracing implementation.
 // If jaegerAgentHost is an empty string, tracing is disabled.
-// Values are retrieved from environment variables, and are
-//  configurable per Cortex component
-func New(serviceName string) io.Closer {
-	jaegerAgentHost := os.Getenv("JAEGER_AGENT_HOST")
-	jaegerSamplerType := os.Getenv("JAEGER_SAMPLER_TYPE")
-	jaegerSamplerParam, _ := strconv.ParseFloat(os.Getenv("JAEGER_SAMPLER_PARAM"), 64)
-
-	if jaegerAgentHost != "" {
-		if jaegerSamplerType == "" || jaegerSamplerParam == 0 {
-			jaegerSamplerType = "ratelimiting"
-			jaegerSamplerParam = 10.0
-		}
+func New(agentHost, serviceName, samplerType string, samplerParam float64) io.Closer {
+	if agentHost != "" {
 		cfg := jaegercfg.Configuration{
 			Sampler: &jaegercfg.SamplerConfig{
-				SamplingServerURL: fmt.Sprintf("http://%s:5778/sampling", jaegerAgentHost),
-				Type:              jaegerSamplerType,
-				Param:             jaegerSamplerParam,
+				SamplingServerURL: fmt.Sprintf("http://%s:5778/sampling", agentHost),
+				Type:              samplerType,
+				Param:             samplerParam,
 			},
 			Reporter: &jaegercfg.ReporterConfig{
-				LocalAgentHostPort: fmt.Sprintf("%s:6831", jaegerAgentHost),
+				LocalAgentHostPort: fmt.Sprintf("%s:6831", agentHost),
 			},
 		}
 
@@ -43,4 +33,18 @@ func New(serviceName string) io.Closer {
 		return closer
 	}
 	return ioutil.NopCloser(nil)
+}
+
+// NewFromEnv is a convenience function to allow tracing configuration
+// via environment variables
+func NewFromEnv(serviceName string) io.Closer {
+	agentHost := os.Getenv("JAEGER_AGENT_HOST")
+	samplerType := os.Getenv("JAEGER_SAMPLER_TYPE")
+	samplerParam, _ := strconv.ParseFloat(os.Getenv("JAEGER_SAMPLER_PARAM"), 64)
+	if samplerType == "" || samplerParam == 0 {
+		samplerType = "ratelimiting"
+		samplerParam = 10.0
+	}
+
+	return New(agentHost, serviceName, samplerType, samplerParam)
 }
