@@ -18,11 +18,21 @@ var ServerLoggingInterceptor = func(ctx context.Context, req interface{}, info *
 	resp, err := handler(ctx, req)
 	entry := logging.With(ctx).WithFields(log.Fields{"method": info.FullMethod, "duration": time.Since(begin)})
 	if err != nil {
-		if info.FullMethod == "/cortex.Ingester/Push" {
-			entry.WithError(err).Warn(gRPC)
-		} else {
-			entry.WithField("request", req).WithError(err).Warn(gRPC)
-		}
+		entry.WithField("request", req).WithError(err).Warn(gRPC)
+	} else {
+		entry.Debugf("%s (success)", gRPC)
+	}
+	return resp, err
+}
+
+// TruncatedServerLoggingInterceptor logs gRPC requests, errors and latency,
+// but omits request bodies.
+var TruncatedServerLoggingInterceptor = func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	begin := time.Now()
+	resp, err := handler(ctx, req)
+	entry := logging.With(ctx).WithFields(log.Fields{"method": info.FullMethod, "duration": time.Since(begin)})
+	if err != nil {
+		entry.WithError(err).Warn(gRPC)
 	} else {
 		entry.Debugf("%s (success)", gRPC)
 	}
