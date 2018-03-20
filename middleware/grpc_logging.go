@@ -33,6 +33,3 @@ func (s GRPCServerLog) UnaryServerInterceptor(ctx context.Context, req interface
 	}
 	return resp, err
 }
-
-// ServerLoggingInterceptor logs gRPC requests, errors and latency. Left here for backwards compatibility
-var ServerLoggingInterceptor = GRPCServerLog{WithRequest: true}.UnaryServerInterceptor
