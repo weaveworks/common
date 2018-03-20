@@ -42,16 +42,16 @@ type Config struct {
 	GRPCListenPort   int
 
 	RegisterInstrumentation bool
+	TruncatedServerLogging  bool
 
 	ServerGracefulShutdownTimeout time.Duration
 	HTTPServerReadTimeout         time.Duration
 	HTTPServerWriteTimeout        time.Duration
 	HTTPServerIdleTimeout         time.Duration
 
-	GRPCOptions            []grpc.ServerOption
-	GRPCMiddleware         []grpc.UnaryServerInterceptor
-	HTTPMiddleware         []middleware.Interface
-	TruncatedServerLogging bool
+	GRPCOptions    []grpc.ServerOption
+	GRPCMiddleware []grpc.UnaryServerInterceptor
+	HTTPMiddleware []middleware.Interface
 }
 
 // RegisterFlags adds the flags required to config this to the given FlagSet
@@ -93,8 +93,6 @@ func New(cfg Config) (*Server, error) {
 		return nil, err
 	}
 
-	var loggingInterceptor func(context.Context, interface{}, *grpc.UnaryServerInfo, grpc.UnaryHandler) (interface{}, error)
-
 	// Prometheus histograms for requests.
 	requestDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: cfg.MetricsNamespace,
@@ -105,16 +103,9 @@ func New(cfg Config) (*Server, error) {
 	prometheus.MustRegister(requestDuration)
 
 	// Setup gRPC server
-	if cfg.TruncatedServerLogging {
-		// Setup truncated logging gRPC server
-		loggingInterceptor = middleware.TruncatedServerLoggingInterceptor
-	} else {
-		// Setup gRPC server
-		loggingInterceptor = middleware.ServerLoggingInterceptor
-	}
-
+	serverLog := middleware.GRPCServerLog{WithRequest: !cfg.TruncatedServerLogging}
 	grpcMiddleware := []grpc.UnaryServerInterceptor{
-		loggingInterceptor,
+		serverLog.UnaryServerInterceptor,
 		middleware.ServerInstrumentInterceptor(requestDuration),
 		otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
 	}
