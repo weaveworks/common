@@ -42,7 +42,7 @@ type Config struct {
 	GRPCListenPort   int
 
 	RegisterInstrumentation bool
-	TruncatedServerLogging  bool
+	ExcludeRequestInLog     bool
 
 	ServerGracefulShutdownTimeout time.Duration
 	HTTPServerReadTimeout         time.Duration
@@ -103,7 +103,7 @@ func New(cfg Config) (*Server, error) {
 	prometheus.MustRegister(requestDuration)
 
 	// Setup gRPC server
-	serverLog := middleware.GRPCServerLog{WithRequest: !cfg.TruncatedServerLogging}
+	serverLog := middleware.GRPCServerLog{WithRequest: !cfg.ExcludeRequestInLog}
 	grpcMiddleware := []grpc.UnaryServerInterceptor{
 		serverLog.UnaryServerInterceptor,
 		middleware.ServerInstrumentInterceptor(requestDuration),
