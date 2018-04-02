@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
@@ -93,4 +94,42 @@ func TestErrorInstrumentationMiddleware(t *testing.T) {
 		"/server.FakeServer/FailWithHTTPError": "402",
 		"/server.FakeServer/Succeed":           "success",
 	}, statuses)
+}
+
+func TestRunReturnsError(t *testing.T) {
+	cfg := Config{
+		HTTPListenPort: 9190,
+		GRPCListenPort: 9191,
+	}
+	t.Run("http", func(t *testing.T) {
+		cfg.MetricsNamespace = "testing_http"
+		srv, err := New(cfg)
+		require.NoError(t, err)
+
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- srv.Run()
+		}()
+
+		time.Sleep(1 * time.Second) // For all go-routines to initialise.
+
+		require.NoError(t, srv.httpListener.Close())
+		require.NotNil(t, <-errChan)
+	})
+
+	t.Run("grpc", func(t *testing.T) {
+		cfg.MetricsNamespace = "testing_grpc"
+		srv, err := New(cfg)
+		require.NoError(t, err)
+
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- srv.Run()
+		}()
+
+		time.Sleep(1 * time.Second) // For all go-routines to initialise.
+
+		require.NoError(t, srv.grpcListener.Close())
+		require.NotNil(t, <-errChan)
+	})
 }
