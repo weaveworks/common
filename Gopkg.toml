@@ -6,3 +6,7 @@
 [[constraint]]
   name = "github.com/prometheus/client_golang"
   branch = "master"
+
+[[constraint]]
+  name = "github.com/sercand/kuberesolver"
+  revision = "aa801ca262949d887bbe0bae3f6f731ac82c26f6"
