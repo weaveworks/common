@@ -58,8 +58,7 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 
 // Server wraps a HTTP and gRPC server, and some common initialization.
 //
-// Servers will be automatically instrumented for Prometheus metrics
-// and Loki tracing.  HTTP over gRPC
+// Servers will be automatically instrumented for Prometheus metrics.
 type Server struct {
 	cfg          Config
 	handler      *signals.Handler

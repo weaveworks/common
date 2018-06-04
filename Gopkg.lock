@@ -170,6 +170,7 @@
   name = "github.com/sercand/kuberesolver"
   packages = ["."]
   revision = "aa801ca262949d887bbe0bae3f6f731ac82c26f6"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -320,6 +321,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8d0ad365d5707a10ed9448a40c405edde58a43adb9cdab773fa69bf8e9acee2e"
+  inputs-digest = "4c5d338c89a50a8734232d9f55fe96f3dcbd31f6f0387a3a1466404df4925090"
   solver-name = "gps-cdcl"
   solver-version = 1
