@@ -4,6 +4,13 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/common)](https://goreportcard.com/report/github.com/weaveworks/common)
 
 
+Does not have dependencies checked in, because this is a library
+intended for consumption by other projects. To fetch dependencies,
+install the `dep` command and run:
+
+    dep ensure
+
+
 ## <a name="help"></a>Getting Help
 
 If you have any questions about, feedback for or problems with `common`:
