@@ -2,10 +2,8 @@ version: 2
 
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
-# Process to update the build container is:
-# Check out desired version of this repo; 'make common-build/.uptodate'; docker push <name>
   docker:
-    - image: weaveworks/common-build:circle20-cfa562b
+    - image: quay.io/weaveworks/build-golang:1.10.0-stretch
   working_directory: /go/src/github.com/weaveworks/common
 
 workflows:
@@ -22,9 +20,7 @@ jobs:
     - checkout
     - run:
         name: Lint
-        command: |
-          touch common-build/.uptodate &&
-          make BUILD_IN_CONTAINER=false lint
+        command: "make BUILD_IN_CONTAINER=false lint"
 
   test:
     <<: *defaults
@@ -34,5 +30,4 @@ jobs:
         name: Test
         command: |
           dep ensure &&
-          touch common-build/.uptodate &&
           make BUILD_IN_CONTAINER=false test
