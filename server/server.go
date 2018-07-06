@@ -57,7 +57,7 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 	f.DurationVar(&cfg.HTTPServerReadTimeout, "server.http-read-timeout", 5*time.Second, "Read timeout for HTTP server")
 	f.DurationVar(&cfg.HTTPServerWriteTimeout, "server.http-write-timeout", 5*time.Second, "Write timeout for HTTP server")
 	f.DurationVar(&cfg.HTTPServerIdleTimeout, "server.http-idle-timeout", 120*time.Second, "Idle timeout for HTTP server")
-	f.Var(&cfg.LogLevel, "log-level", "Default log level.")
+	cfg.LogLevel.RegisterFlags(f)
 }
 
 // Server wraps a HTTP and gRPC server, and some common initialization.
