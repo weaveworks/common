@@ -26,8 +26,8 @@ import (
 // must be have.
 type Level struct {
 	s      string
-	logrus logrus.Level
-	gokit  level.Option
+	Logrus logrus.Level
+	Gokit  level.Option
 }
 
 // RegisterFlags adds the log level flag to the provided flagset.
@@ -44,17 +44,17 @@ func (l *Level) String() string {
 func (l *Level) Set(s string) error {
 	switch s {
 	case "debug":
-		l.logrus = logrus.DebugLevel
-		l.gokit = level.AllowDebug()
+		l.Logrus = logrus.DebugLevel
+		l.Gokit = level.AllowDebug()
 	case "info":
-		l.logrus = logrus.InfoLevel
-		l.gokit = level.AllowInfo()
+		l.Logrus = logrus.InfoLevel
+		l.Gokit = level.AllowInfo()
 	case "warn":
-		l.logrus = logrus.WarnLevel
-		l.gokit = level.AllowWarn()
+		l.Logrus = logrus.WarnLevel
+		l.Gokit = level.AllowWarn()
 	case "error":
-		l.logrus = logrus.ErrorLevel
-		l.gokit = level.AllowError()
+		l.Logrus = logrus.ErrorLevel
+		l.Gokit = level.AllowError()
 	default:
 		return errors.Errorf("unrecognized log level %q", s)
 	}

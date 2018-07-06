@@ -13,7 +13,7 @@ import (
 func NewLogrus(level Level) Interface {
 	log := logrus.New()
 	log.Out = os.Stderr
-	log.Level = level.logrus
+	log.Level = level.Logrus
 	log.Formatter = &textFormatter{}
 	return logrusLogger{log}
 }

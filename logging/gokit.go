@@ -11,7 +11,7 @@ import (
 // NewGoKit creates a new Interface backed by a GoKit logger
 func NewGoKit(l Level) Interface {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = level.NewFilter(logger, l.gokit)
+	logger = level.NewFilter(logger, l.Gokit)
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	return gokit{logger}
 }
