@@ -9,8 +9,8 @@ import (
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 )
 
-// InstallJaeger registers Jaeger as the OpenTracing implementation.
-func InstallJaeger(serviceName string, cfg *jaegercfg.Configuration) io.Closer {
+// installJaeger registers Jaeger as the OpenTracing implementation.
+func installJaeger(serviceName string, cfg *jaegercfg.Configuration) io.Closer {
 	closer, err := cfg.InitGlobalTracer(serviceName)
 	if err != nil {
 		fmt.Printf("Could not initialize jaeger tracer: %s\n", err.Error())
@@ -21,7 +21,8 @@ func InstallJaeger(serviceName string, cfg *jaegercfg.Configuration) io.Closer {
 
 // NewFromEnv is a convenience function to allow tracing configuration
 // via environment variables
-// Tracing is disabled unless one of the following environment variables is used to configure jaeger:
+//
+// Tracing will be enabled if one (or more) of the following environment variables is used to configure trace reporting:
 // - JAEGER_AGENT_HOST
 // - JAEGER_SAMPLER_MANAGER_HOST_PORT
 func NewFromEnv(serviceName string) io.Closer {
@@ -36,5 +37,5 @@ func NewFromEnv(serviceName string) io.Closer {
 		return ioutil.NopCloser(nil)
 	}
 
-	return InstallJaeger(serviceName, cfg)
+	return installJaeger(serviceName, cfg)
 }
