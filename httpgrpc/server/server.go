@@ -14,6 +14,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/mwitkow/go-grpc-middleware"
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/sercand/kuberesolver"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -41,8 +42,15 @@ func (s Server) Handle(ctx context.Context, r *httpgrpc.HTTPRequest) (*httpgrpc.
 	if err != nil {
 		return nil, err
 	}
-	req = req.WithContext(ctx)
 	toHeader(r.Headers, req.Header)
+	if tracer := opentracing.GlobalTracer(); tracer != nil {
+		if clientContext, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err == nil {
+			span := tracer.StartSpan("httpgrpc", ext.RPCServerOption(clientContext))
+			defer span.Finish()
+			ctx = opentracing.ContextWithSpan(ctx, span)
+		}
+	}
+	req = req.WithContext(ctx)
 	req.RequestURI = r.Url
 	recorder := httptest.NewRecorder()
 	s.handler.ServeHTTP(recorder, req)
@@ -137,6 +145,11 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if tracer := opentracing.GlobalTracer(); tracer != nil {
+		if span := opentracing.SpanFromContext(r.Context()); span != nil {
+			_ = tracer.Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+		}
 	}
 	req := &httpgrpc.HTTPRequest{
 		Method:  r.Method,
