@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/weaveworks/common/httpgrpc"
+	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/middleware"
 )
 
@@ -44,10 +45,13 @@ func (s Server) Handle(ctx context.Context, r *httpgrpc.HTTPRequest) (*httpgrpc.
 	}
 	toHeader(r.Headers, req.Header)
 	if tracer := opentracing.GlobalTracer(); tracer != nil {
-		if clientContext, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err == nil {
+		clientContext, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header))
+		if err == nil {
 			span := tracer.StartSpan("httpgrpc", ext.RPCServerOption(clientContext))
 			defer span.Finish()
 			ctx = opentracing.ContextWithSpan(ctx, span)
+		} else if err != opentracing.ErrSpanContextNotFound {
+			logging.Global().Warnf("Failed to extract tracing headers from request: %v", err)
 		}
 	}
 	req = req.WithContext(ctx)
@@ -148,7 +152,9 @@ func (c *Client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if tracer := opentracing.GlobalTracer(); tracer != nil {
 		if span := opentracing.SpanFromContext(r.Context()); span != nil {
-			_ = tracer.Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+			if err := tracer.Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header)); err != nil {
+				logging.Global().Warnf("Failed to inject tracing headers into request: %v", err)
+			}
 		}
 	}
 	req := &httpgrpc.HTTPRequest{
