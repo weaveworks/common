@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
@@ -111,10 +110,11 @@ func TestRunReturnsError(t *testing.T) {
 			errChan <- srv.Run()
 		}()
 
-		time.Sleep(1 * time.Second) // For all go-routines to initialise.
-
 		require.NoError(t, srv.httpListener.Close())
 		require.NotNil(t, <-errChan)
+
+		// So that address is freed for further tests.
+		srv.GRPC.Stop()
 	})
 
 	t.Run("grpc", func(t *testing.T) {
@@ -126,8 +126,6 @@ func TestRunReturnsError(t *testing.T) {
 		go func() {
 			errChan <- srv.Run()
 		}()
-
-		time.Sleep(1 * time.Second) // For all go-routines to initialise.
 
 		require.NoError(t, srv.grpcListener.Close())
 		require.NotNil(t, <-errChan)
