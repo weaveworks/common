@@ -45,6 +45,7 @@ lint test shell:
 	$(SUDO) docker run $(RM) -ti \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/go/src/github.com/weaveworks/common \
+		-e SRC_PATH=/go/src/github.com/weaveworks/common \
 		$(BUILD_IMAGE) $@
 
 else
