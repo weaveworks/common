@@ -70,9 +70,10 @@ type Server struct {
 	grpcListener net.Listener
 	httpServer   *http.Server
 
-	HTTP *mux.Router
-	GRPC *grpc.Server
-	Log  logging.Interface
+	HTTP       *mux.Router
+	HTTPServer *http.Server
+	GRPC       *grpc.Server
+	Log        logging.Interface
 }
 
 // New makes a new Server
@@ -166,9 +167,10 @@ func New(cfg Config) (*Server, error) {
 		httpServer:   httpServer,
 		handler:      signals.NewHandler(log),
 
-		HTTP: router,
-		GRPC: grpcServer,
-		Log:  log,
+		HTTP:       router,
+		HTTPServer: httpServer,
+		GRPC:       grpcServer,
+		Log:        log,
 	}, nil
 }
 
