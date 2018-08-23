@@ -66,9 +66,8 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 type Server struct {
 	cfg          Config
 	handler      *signals.Handler
-	httpListener net.Listener
 	grpcListener net.Listener
-	httpServer   *http.Server
+	httpListener net.Listener
 
 	HTTP       *mux.Router
 	HTTPServer *http.Server
@@ -164,7 +163,6 @@ func New(cfg Config) (*Server, error) {
 		cfg:          cfg,
 		httpListener: httpListener,
 		grpcListener: grpcListener,
-		httpServer:   httpServer,
 		handler:      signals.NewHandler(log),
 
 		HTTP:       router,
@@ -194,7 +192,7 @@ func (s *Server) Run() error {
 	}()
 
 	go func() {
-		err := s.httpServer.Serve(s.httpListener)
+		err := s.HTTPServer.Serve(s.httpListener)
 		if err == http.ErrServerClosed {
 			err = nil
 		}
@@ -234,6 +232,6 @@ func (s *Server) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.ServerGracefulShutdownTimeout)
 	defer cancel() // releases resources if httpServer.Shutdown completes before timeout elapses
 
-	s.httpServer.Shutdown(ctx)
+	s.HTTPServer.Shutdown(ctx)
 	s.GRPC.GracefulStop()
 }
