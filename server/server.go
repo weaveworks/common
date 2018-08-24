@@ -180,7 +180,7 @@ func RegisterInstrumentation(router *mux.Router) {
 
 // Run the server; blocks until SIGTERM or an error is received.
 func (s *Server) Run() error {
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 
 	// Wait for a signal
 	go func() {
