@@ -10,6 +10,7 @@ import (
 )
 
 // Setup configures a global logrus logger to output to stderr.
+// It populates the standard logrus logger as well as the global logging instance.
 func Setup(logLevel string) error {
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {
@@ -23,5 +24,6 @@ func Setup(logLevel string) error {
 	logrus.SetLevel(level)
 	logrus.SetFormatter(&textFormatter{})
 	logrus.AddHook(hook)
+	SetGlobal(Logrus(logrus.StandardLogger()))
 	return nil
 }
