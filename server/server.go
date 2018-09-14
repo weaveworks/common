@@ -8,6 +8,8 @@ import (
 	_ "net/http/pprof" // anonymous import to get the pprof handler registered
 	"time"
 
+	"github.com/opentracing-contrib/go-stdlib/nethttp"
+
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/mwitkow/go-grpc-middleware"
@@ -42,6 +44,7 @@ type Config struct {
 	GRPCMiddleware       []grpc.UnaryServerInterceptor
 	GRPCStreamMiddleware []grpc.StreamServerInterceptor
 	HTTPMiddleware       []middleware.Interface
+	OpentracingOptions   []nethttp.MWOption
 
 	LogLevel logging.Level
 	Log      logging.Interface
@@ -139,7 +142,9 @@ func New(cfg Config) (*Server, error) {
 		RegisterInstrumentation(router)
 	}
 	httpMiddleware := []middleware.Interface{
-		middleware.Tracer{},
+		middleware.Tracer{
+			Options: cfg.OpentracingOptions,
+		},
 		middleware.Log{
 			Log: log,
 		},

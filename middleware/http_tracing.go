@@ -10,11 +10,13 @@ import (
 )
 
 // Tracer is a middleware which traces incoming requests.
-type Tracer struct{}
+type Tracer struct {
+	Options []nethttp.MWOption
+}
 
 // Wrap implements Interface
 func (t Tracer) Wrap(next http.Handler) http.Handler {
-	traceHandler := nethttp.Middleware(opentracing.GlobalTracer(), next)
+	traceHandler := nethttp.Middleware(opentracing.GlobalTracer(), next, t.Options...)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var maybeTracer http.Handler
 		// Don't try and trace websocket requests because nethttp.Middleware
