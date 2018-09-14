@@ -66,6 +66,12 @@
   version = "v1.7.0"
 
 [[projects]]
+  name = "github.com/gogo/protobuf"
+  packages = ["proto"]
+  revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
+  version = "v1.1.1"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -242,9 +248,12 @@
 
 [[projects]]
   name = "github.com/uber/jaeger-lib"
-  packages = ["metrics"]
-  revision = "ed3a127ec5fef7ae9ea95b01b542c47fbd999ce5"
-  version = "v1.5.0"
+  packages = [
+    "metrics",
+    "metrics/prometheus"
+  ]
+  revision = "5519f3beabf28707fca8d3f47f9cff87dad48d96"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/weaveworks/promrus"
@@ -349,6 +358,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "00ca48db1cbceb304f25a236a30e738a854dc916c58f79e8bfabb01587f6c4e5"
+  inputs-digest = "3c23de9e439a674c3438f33a4fc43538cbddef8ba80e128431726f8a39f987ef"
   solver-name = "gps-cdcl"
   solver-version = 1
