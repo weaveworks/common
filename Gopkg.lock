@@ -84,12 +84,32 @@
   version = "v1.7.0"
 
 [[projects]]
+  digest = "1:087650ef49bc1377368b98858ecd5db88e20c91df046c917fdcdd87298698c18"
+  name = "github.com/gogo/googleapis"
+  packages = ["google/rpc"]
+  pruneopts = "N"
+  revision = "8558fb44d2f1fc223118afc694129d2c2d2924d1"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:809e332c8b79399d55f1fd11f5e45b892bc0fb25c7c912898ad307a8d0506164"
   name = "github.com/gogo/protobuf"
-  packages = ["proto"]
+  packages = [
+    "proto",
+    "sortkeys",
+    "types",
+  ]
   pruneopts = "N"
   revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:77ebb404a61e4f85c7ff5d33130088248989810baaec718c8028b83b59470b04"
+  name = "github.com/gogo/status"
+  packages = ["."]
+  pruneopts = "N"
+  revision = "d60b5acac426cb52f7e28124c6aaa862d9f339f5"
+  version = "v1.0.3"
 
 [[projects]]
   digest = "1:95e168b09dce8da11d138eda5499dd68efe6debf6d571ffb41723ad8364045cc"
@@ -447,10 +467,10 @@
     "github.com/davecgh/go-spew/spew",
     "github.com/go-kit/kit/log",
     "github.com/go-kit/kit/log/level",
+    "github.com/gogo/googleapis/google/rpc",
     "github.com/gogo/protobuf/proto",
-    "github.com/golang/protobuf/proto",
-    "github.com/golang/protobuf/ptypes",
-    "github.com/golang/protobuf/ptypes/any",
+    "github.com/gogo/protobuf/types",
+    "github.com/gogo/status",
     "github.com/golang/protobuf/ptypes/empty",
     "github.com/gorilla/mux",
     "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc",
@@ -474,7 +494,6 @@
     "github.com/weaveworks/promrus",
     "golang.org/x/net/context",
     "golang.org/x/tools/cover",
-    "google.golang.org/genproto/googleapis/rpc/status",
     "google.golang.org/grpc",
     "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/status",

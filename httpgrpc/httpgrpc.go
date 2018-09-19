@@ -3,11 +3,10 @@ package httpgrpc
 import (
 	"fmt"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	spb "github.com/gogo/googleapis/google/rpc"
+	ptypes "github.com/gogo/protobuf/types"
+	"github.com/gogo/status"
 	log "github.com/sirupsen/logrus"
-	spb "google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/grpc/status"
 )
 
 // Errorf returns a HTTP gRPC error than is correctly forwarded over
@@ -30,7 +29,7 @@ func ErrorFromHTTPResponse(resp *HTTPResponse) error {
 	return status.ErrorProto(&spb.Status{
 		Code:    resp.Code,
 		Message: string(resp.Body),
-		Details: []*any.Any{a},
+		Details: []*ptypes.Any{a},
 	})
 }
 
