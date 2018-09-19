@@ -471,6 +471,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/gogo/status",
+    "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes/empty",
     "github.com/gorilla/mux",
     "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc",

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	spb "github.com/gogo/googleapis/google/rpc"
-	ptypes "github.com/gogo/protobuf/types"
+	"github.com/gogo/protobuf/types"
 	"github.com/gogo/status"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,7 +21,7 @@ func Errorf(code int, tmpl string, args ...interface{}) error {
 
 // ErrorFromHTTPResponse converts an HTTP response into a grpc error
 func ErrorFromHTTPResponse(resp *HTTPResponse) error {
-	a, err := ptypes.MarshalAny(resp)
+	a, err := types.MarshalAny(resp)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func ErrorFromHTTPResponse(resp *HTTPResponse) error {
 	return status.ErrorProto(&spb.Status{
 		Code:    resp.Code,
 		Message: string(resp.Body),
-		Details: []*ptypes.Any{a},
+		Details: []*types.Any{a},
 	})
 }
 
@@ -46,7 +46,7 @@ func HTTPResponseFromError(err error) (*HTTPResponse, bool) {
 	}
 
 	var resp HTTPResponse
-	if err := ptypes.UnmarshalAny(status.Details[0], &resp); err != nil {
+	if err := types.UnmarshalAny(status.Details[0], &resp); err != nil {
 		log.Errorf("Got error containing non-response: %v", err)
 		return nil, false
 	}
