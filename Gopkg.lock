@@ -144,14 +144,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c4ec09c0628ec1280df161078762f7a165077104591f70e45476ffb841c6503a"
-  name = "github.com/grpc-ecosystem/grpc-opentracing"
-  packages = ["go/otgrpc"]
-  pruneopts = "N"
-  revision = "8e809c8a86450a29b90dcc9efbf062d0fe6d9746"
-
-[[projects]]
-  branch = "master"
   digest = "1:e4c1a64c49d6d398c449089ca59b848d9a8ae2e54a93b7381b79a2c4efdc6742"
   name = "github.com/kr/logfmt"
   packages = ["."]
@@ -197,6 +189,14 @@
   pruneopts = "N"
   revision = "c250d6563d4d4c20252cd865923440e829844f4e"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:9db48eba2e5adca61406261c60d64dd32b0377e01e6f269cd9f2a664d742f538"
+  name = "github.com/opentracing-contrib/go-grpc"
+  packages = ["."]
+  pruneopts = "N"
+  revision = "4b5a12d3ff02ba61ae861b7797e17a0c4f0ecea9"
 
 [[projects]]
   branch = "master"
@@ -474,9 +474,9 @@
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes/empty",
     "github.com/gorilla/mux",
-    "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc",
     "github.com/mgutz/ansi",
     "github.com/mwitkow/go-grpc-middleware",
+    "github.com/opentracing-contrib/go-grpc",
     "github.com/opentracing-contrib/go-stdlib/nethttp",
     "github.com/opentracing/opentracing-go",
     "github.com/opentracing/opentracing-go/ext",
