@@ -7,12 +7,9 @@
   name = "github.com/prometheus/client_golang"
   branch = "master"
 
-# After aa801ca (v1.0.0), kuberesolver changed its API in a non-backwards
-# compatible way. We need to pin this old version until we can refactor to the
-# new API.
 [[constraint]]
   name = "github.com/sercand/kuberesolver"
-  version = "1.0.0"
+  version = "2.1.0"
 
 # Older versions apparently have problems converting 'Any' types used in errors
 [[constraint]]
