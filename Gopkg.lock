@@ -34,14 +34,6 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
-  branch = "master"
-  digest = "1:adf831372b7c8d59cd1ff69ecbe0eae7d4db0e560d25d1470f416a58f74de096"
-  name = "github.com/codahale/hdrhistogram"
-  packages = ["."]
-  pruneopts = "N"
-  revision = "3a0bb77429bd3a61596f5e8a3172445844342120"
-
-[[projects]]
   digest = "1:b46d03af5ac7e36f1fed42a6f9bfc0e6fa84d1e3298a09e42f9bd91c431802ce"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -328,15 +320,15 @@
   version = "v2.15.0"
 
 [[projects]]
-  digest = "1:f0ebf115e0ff7918d7d7ab730efd3f4176a0cebaf46e559603cd23ac20e0efd2"
+  branch = "master"
+  digest = "1:ef716368d33f22e6c7fb604c334f9f4d32dca397308f13aa8b1e3dd6fe708b81"
   name = "github.com/uber/jaeger-lib"
   packages = [
     "metrics",
     "metrics/prometheus",
   ]
   pruneopts = "N"
-  revision = "5519f3beabf28707fca8d3f47f9cff87dad48d96"
-  version = "v1.3.0"
+  revision = "1fc5c315e03c871d98a3df762234414d185115d7"
 
 [[projects]]
   digest = "1:13483a0a4063f86e3d628c71c4d08aaf72aec19fd978361da9f667e48e95a183"
@@ -494,6 +486,7 @@
     "golang.org/x/net/context",
     "golang.org/x/tools/cover",
     "google.golang.org/grpc",
+    "google.golang.org/grpc/balancer/roundrobin",
     "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/status",
   ]
