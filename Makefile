@@ -54,7 +54,7 @@ lint:
 	./tools/lint -notestpackage -ignorespelling queriers -ignorespelling Queriers .
 
 test:
-	./tools/test -no-go-get -netgo
+	go test ./...
 
 shell:
 	bash
