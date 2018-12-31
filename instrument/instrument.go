@@ -26,7 +26,7 @@ type Collector interface {
 
 // HistogramCollector collects the duration of a request
 type HistogramCollector struct {
-	metric *prometheus.HistogramVec
+	metric prometheus.ObserverVec
 }
 
 // HistogramCollectorBuckets define the buckets when passing the metric
@@ -41,7 +41,7 @@ func NewHistogramCollectorFromOpts(opts prometheus.HistogramOpts) *HistogramColl
 }
 
 // NewHistogramCollector creates a Collector from a metric.
-func NewHistogramCollector(metric *prometheus.HistogramVec) *HistogramCollector {
+func NewHistogramCollector(metric prometheus.ObserverVec) *HistogramCollector {
 	return &HistogramCollector{metric}
 }
 
@@ -173,7 +173,7 @@ func ErrorCode(err error) string {
 // "500".  It will also emit an OpenTracing span if you have a global tracer configured.
 //
 // Deprecated: Use CollectedRequest()
-func TimeRequestHistogram(ctx oldcontext.Context, method string, metric *prometheus.HistogramVec, f func(context.Context) error) error {
+func TimeRequestHistogram(ctx oldcontext.Context, method string, metric prometheus.ObserverVec, f func(context.Context) error) error {
 	return CollectedRequest(ctx, method, NewHistogramCollector(metric), ErrorCode, f)
 }
 
@@ -182,6 +182,6 @@ func TimeRequestHistogram(ctx oldcontext.Context, method string, metric *prometh
 // "500".  It will also emit an OpenTracing span if you have a global tracer configured.
 //
 // Deprecated: Use CollectedRequest()
-func TimeRequestHistogramStatus(ctx oldcontext.Context, method string, metric *prometheus.HistogramVec, toStatusCode func(error) string, f func(context.Context) error) error {
+func TimeRequestHistogramStatus(ctx oldcontext.Context, method string, metric prometheus.ObserverVec, toStatusCode func(error) string, f func(context.Context) error) error {
 	return CollectedRequest(ctx, method, NewHistogramCollector(metric), toStatusCode, f)
 }
