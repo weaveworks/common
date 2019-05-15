@@ -6,10 +6,10 @@
 IMAGE_PREFIX := weaveworks
 IMAGE_TAG := $(shell ./tools/image-tag)
 UPTODATE := .uptodate
-BUILD_IMAGE=quay.io/weaveworks/build-golang:1.10.0-stretch
+BUILD_IMAGE=weaveworks/build-golang:1.12.1-stretch
 
 # Building Docker images is now automated. The convention is every directory
-# with a Dockerfile in it builds an image calls quay.io/weaveworks/<dirname>.
+# with a Dockerfile in it builds an image called weaveworks/<dirname>.
 # Dependencies (i.e. things that go in the image) still need to be explicitly
 # declared.
 %/$(UPTODATE): %/Dockerfile
