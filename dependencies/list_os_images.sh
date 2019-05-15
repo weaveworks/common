@@ -8,11 +8,11 @@ Dependencies:
   - gcloud, Google Cloud Platform's CLI
   - aws,
 Usage: 
-  $ ./$(basename "$0") PROVIDER OS
+  \$ ./$(basename "$0") PROVIDER OS
   PROVIDER={gcp}
   OS={ubuntu|debian|centos}
 Example: 
-  $ ./$(basename "$0") gcp ubuntu
+  \$ ./$(basename "$0") gcp ubuntu
   ubuntu-os-cloud/ubuntu-1204-lts
   ubuntu-os-cloud/ubuntu-1404-lts
   ubuntu-os-cloud/ubuntu-1604-lts
@@ -57,7 +57,7 @@ fi
 
 case "$1" in
     'gcp')
-        gcloud compute images list --standard-images --regexp=".*?$2.*" \
+        gcloud compute images list --standard-images --filter="name~'.*?$2.*'" \
             --format="csv[no-heading][separator=/](selfLink.map().scope(projects).segment(0),family)" \
             | sort -d
         ;;
