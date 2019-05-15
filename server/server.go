@@ -104,6 +104,9 @@ func New(cfg Config) (*Server, error) {
 		Help:      "Time (in seconds) spent serving HTTP requests.",
 		Buckets:   instrument.DefBuckets,
 	}, []string{"method", "route", "status_code", "ws"})
+	// Try to unregister the requestDuration, in case already registered for some reason,
+	// e.g. double initialisation/configuration done by mistake by the end-user.
+	prometheus.Unregister(requestDuration)
 	prometheus.MustRegister(requestDuration)
 
 	// If user doesn't supply a logging implementation, by default instantiate
