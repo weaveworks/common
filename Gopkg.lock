@@ -447,6 +447,14 @@
   revision = "2e463a05d100327ca47ac218281906921038fd95"
   version = "v1.16.0"
 
+[[projects]]
+  digest = "1:f73ac4b3104b3bd1d95adc75f59099c5339b4a751f50a40e13f79098b9c19d3b"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  pruneopts = "N"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -489,6 +497,7 @@
     "google.golang.org/grpc/balancer/roundrobin",
     "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/status",
+    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
