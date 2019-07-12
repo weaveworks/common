@@ -221,14 +221,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7cf00de87977d0ec2476ee25f90f23b617909267dab15cdf9dc435d1ccd80e81"
+  digest = "1:7de934d7c97db5ae2ad15a54b705f6092f8f17d8823a98a94cbe912d7615d7bb"
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
     "prometheus/internal",
   ]
   pruneopts = "N"
-  revision = "3fb53dff765f8a3e0f9d8b1d5b86d4f8c4eb3a09"
+  revision = "ff1d4e21c12e4c0b190a166d96507786c8f989d6"
 
 [[projects]]
   branch = "master"
@@ -251,17 +251,15 @@
   revision = "1f2c4f3cd6db5fd6f68f36af6b6d5d936fd93c4e"
 
 [[projects]]
-  branch = "master"
-  digest = "1:03a2bc67e974be8b7bd4a8d4d8f3c4df658c5db033f9379f6feaf2da4f4f6ea2"
+  digest = "1:20aca8cecf3ba3396a512204964890fa13de4fac7f81bfdb12d628dd1d3f7657"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
-    "internal/util",
-    "nfs",
-    "xfs",
+    "internal/fs",
   ]
   pruneopts = "N"
-  revision = "185b4288413d2a0dd0806f78c90dde719829e5ae"
+  revision = "3f98efb27840a48a7a2898ec80be07674d19f9c8"
+  version = "v0.0.3"
 
 [[projects]]
   digest = "1:f49ee55ced2e7878abfe001aa6472f9e1229d8b6b9d9fbbf618607c8095cad66"
