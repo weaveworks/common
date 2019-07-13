@@ -2,3 +2,4 @@
 .pkg
 /common-build/.src
 vendor
+.cache
