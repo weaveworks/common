@@ -120,12 +120,12 @@
   version = "v1.6.2"
 
 [[projects]]
-  digest = "1:70c1f58286e9c70b080d2a41b1ec187d7fd7f7cc09d4c1f64b2ca205b7d9bbc9"
+  digest = "1:57710d97c66b36f74586f98ba18d2a10f40d85d9c090be66e67df82993f57e3c"
   name = "github.com/grpc-ecosystem/go-grpc-middleware"
   packages = ["."]
   pruneopts = "N"
-  revision = "c250d6563d4d4c20252cd865923440e829844f4e"
-  version = "v1.0.0"
+  revision = "dd15ed025b6054e5253963e355991f3070d4e593"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:4643b94ee9e1e291b3f35558faddf6882cb7c2c759a416c0427bc13c2b992a24"
@@ -226,6 +226,7 @@
   packages = [
     "prometheus",
     "prometheus/internal",
+    "prometheus/promhttp",
   ]
   pruneopts = "N"
   revision = "ff1d4e21c12e4c0b190a166d96507786c8f989d6"
@@ -345,8 +346,8 @@
   revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:1bdb2650063f20c0a1a5f5a54ded4b181de5eaf1354651e90d99849b020a716a"
+  branch = "release-branch.go1.13"
+  digest = "1:471d5c8ff8543aca93ae431d96051087cdfaa5b0bb4d262e5f9bf2860db93cfa"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -355,10 +356,11 @@
     "http2/hpack",
     "idna",
     "internal/timeseries",
+    "netutil",
     "trace",
   ]
   pruneopts = "N"
-  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+  revision = "13f9640d40b9cc418fb53703dfbd177679788ceb"
 
 [[projects]]
   branch = "master"
@@ -480,6 +482,7 @@
     "github.com/pkg/errors",
     "github.com/pmezard/go-difflib/difflib",
     "github.com/prometheus/client_golang/prometheus",
+    "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/sercand/kuberesolver",
     "github.com/sirupsen/logrus",
     "github.com/sirupsen/logrus/hooks/test",
@@ -490,6 +493,7 @@
     "github.com/uber/jaeger-lib/metrics/prometheus",
     "github.com/weaveworks/promrus",
     "golang.org/x/net/context",
+    "golang.org/x/net/netutil",
     "golang.org/x/tools/cover",
     "google.golang.org/grpc",
     "google.golang.org/grpc/balancer/roundrobin",
