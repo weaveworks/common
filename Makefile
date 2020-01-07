@@ -6,7 +6,7 @@
 IMAGE_PREFIX := weaveworks
 IMAGE_TAG := $(shell ./tools/image-tag)
 UPTODATE := .uptodate
-BUILD_IMAGE=weaveworks/build-golang:1.12.1-stretch
+BUILD_IMAGE=weaveworks/build-golang:1.13.3-stretch
 
 # Building Docker images is now automated. The convention is every directory
 # with a Dockerfile in it builds an image called weaveworks/<dirname>.
