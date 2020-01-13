@@ -3,6 +3,7 @@ package server
 import (
 	"flag"
 	"fmt"
+	math "math"
 	"net"
 	"net/http"
 	_ "net/http/pprof" // anonymous import to get the pprof handler registered
@@ -16,6 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 
 	"github.com/weaveworks/common/httpgrpc"
 	httpgrpc_server "github.com/weaveworks/common/httpgrpc/server"
@@ -46,9 +48,10 @@ type Config struct {
 	GRPCStreamMiddleware []grpc.StreamServerInterceptor `yaml:"-"`
 	HTTPMiddleware       []middleware.Interface         `yaml:"-"`
 
-	GPRCServerMaxRecvMsgSize       int  `yaml:"grpc_server_max_recv_msg_size"`
-	GRPCServerMaxSendMsgSize       int  `yaml:"grpc_server_max_send_msg_size"`
-	GPRCServerMaxConcurrentStreams uint `yaml:"grpc_server_max_concurrent_streams"`
+	GPRCServerMaxRecvMsgSize       int                        `yaml:"grpc_server_max_recv_msg_size"`
+	GRPCServerMaxSendMsgSize       int                        `yaml:"grpc_server_max_send_msg_size"`
+	GPRCServerMaxConcurrentStreams uint                       `yaml:"grpc_server_max_concurrent_streams"`
+	GRPCServerKeepAliveConfigs     keepalive.ServerParameters `yaml:"-"`
 
 	LogLevel logging.Level     `yaml:"log_level"`
 	Log      logging.Interface `yaml:"-"`
@@ -70,6 +73,16 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&cfg.GPRCServerMaxRecvMsgSize, "server.grpc-max-recv-msg-size-bytes", 4*1024*1024, "Limit on the size of a gRPC message this server can receive (bytes).")
 	f.IntVar(&cfg.GRPCServerMaxSendMsgSize, "server.grpc-max-send-msg-size-bytes", 4*1024*1024, "Limit on the size of a gRPC message this server can send (bytes).")
 	f.UintVar(&cfg.GPRCServerMaxConcurrentStreams, "server.grpc-max-concurrent-streams", 100, "Limit on the number of concurrent streams for gRPC calls (0 = unlimited)")
+	flag.DurationVar(&cfg.GRPCServerKeepAliveConfigs.MaxConnectionIdle, "server.grpc.keepalive.max-connection-idle", time.Duration(math.MaxInt64),
+		"The duration after which an idle connection should be closed. Default: infinity")
+	flag.DurationVar(&cfg.GRPCServerKeepAliveConfigs.MaxConnectionAge, "server.grpc.keepalive.max-connection-age", time.Duration(math.MaxInt64),
+		"The duration for the maximum amount of time a connection may exist before it will be closed. Default: infinity")
+	flag.DurationVar(&cfg.GRPCServerKeepAliveConfigs.MaxConnectionAgeGrace, "server.grpc.keepalive.max-connection-age-grace", time.Duration(math.MaxInt64),
+		"An additive period after max-connection-age after which the connection will be forcibly closed. Default: infinity")
+	flag.DurationVar(&cfg.GRPCServerKeepAliveConfigs.Time, "server.grpc.keepalive.time", time.Hour*2,
+		"Duration after which a keepalive probe is sent in case of no activity over the connection., Default: 2h")
+	flag.DurationVar(&cfg.GRPCServerKeepAliveConfigs.Timeout, "server.grpc.keepalive.timeout", time.Second*20,
+		"Duration after which an idle connection should be closed, Default: 20s")
 	f.StringVar(&cfg.PathPrefix, "server.path-prefix", "", "Base path to serve all API routes from (e.g. /v1/)")
 	cfg.LogLevel.RegisterFlags(f)
 }
@@ -146,6 +159,7 @@ func New(cfg Config) (*Server, error) {
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			grpcStreamMiddleware...,
 		)),
+		grpc.KeepaliveParams(cfg.GRPCServerKeepAliveConfigs),
 		grpc.MaxRecvMsgSize(cfg.GPRCServerMaxRecvMsgSize),
 		grpc.MaxSendMsgSize(cfg.GRPCServerMaxSendMsgSize),
 		grpc.MaxConcurrentStreams(uint32(cfg.GPRCServerMaxConcurrentStreams)),
