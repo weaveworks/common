@@ -3,7 +3,7 @@ package server
 import (
 	"flag"
 	"fmt"
-	math "math"
+	"math"
 	"net"
 	"net/http"
 	_ "net/http/pprof" // anonymous import to get the pprof handler registered
