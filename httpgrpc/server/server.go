@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sercand/kuberesolver"
@@ -106,7 +106,7 @@ func ParseURL(unparsed string) (string, error) {
 		if len(parts) > 2 {
 			domain = domain + "." + parts[2]
 		}
-		address := fmt.Sprintf("kubernetes://%s%s:%s", service, domain, port)
+		address := fmt.Sprintf("kubernetes:///%s%s:%s", service, domain, port)
 		return address, nil
 
 	default:
