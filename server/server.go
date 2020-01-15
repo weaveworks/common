@@ -51,11 +51,11 @@ type Config struct {
 	GPRCServerMaxRecvMsgSize        int           `yaml:"grpc_server_max_recv_msg_size"`
 	GRPCServerMaxSendMsgSize        int           `yaml:"grpc_server_max_send_msg_size"`
 	GPRCServerMaxConcurrentStreams  uint          `yaml:"grpc_server_max_concurrent_streams"`
-	GRPCServerMaxConnectionIdle     time.Duration `yaml:"grpc_max_connection_idle"`
-	GRPCServerMaxConnectionAge      time.Duration `yaml:"grpc_max_connection_age"`
-	GRPCServerMaxConnectionAgeGrace time.Duration `yaml:"grpc_max_connection_age_grace"`
-	GRPCServerTime                  time.Duration `yaml:"grpc_keepalive_time"`
-	GRPCServerTimeout               time.Duration `yaml:"grpc_keepalive_timeout"`
+	GRPCServerMaxConnectionIdle     time.Duration `yaml:"grpc_server_max_connection_idle"`
+	GRPCServerMaxConnectionAge      time.Duration `yaml:"grpc_server_max_connection_age"`
+	GRPCServerMaxConnectionAgeGrace time.Duration `yaml:"grpc_server_max_connection_age_grace"`
+	GRPCServerTime                  time.Duration `yaml:"grpc_server_keepalive_time"`
+	GRPCServerTimeout               time.Duration `yaml:"grpc_server_keepalive_timeout"`
 
 	LogLevel logging.Level     `yaml:"log_level"`
 	Log      logging.Interface `yaml:"-"`
