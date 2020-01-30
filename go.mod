@@ -10,7 +10,7 @@ require (
 	github.com/go-kit/kit v0.8.0
 	github.com/go-logfmt/logfmt v0.3.0
 	github.com/gogo/googleapis v1.1.0
-	github.com/gogo/protobuf v1.2.1
+	github.com/gogo/protobuf v1.3.0
 	github.com/gogo/status v1.0.3
 	github.com/golang/lint v0.0.0-20180702182130-06c8688daad7 // indirect
 	github.com/golang/protobuf v1.3.2
