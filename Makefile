@@ -24,6 +24,8 @@ DOCKER_IMAGE_DIRS=$(patsubst %/Dockerfile,%,$(DOCKERFILES))
 
 all: $(UPTODATE_FILES)
 
+GENERATED_PROTOS=server/fake_server.pb.go httpgrpc/httpgrpc.pb.go
+
 # All the boiler plate for building golang follows:
 SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
 BUILD_IN_CONTAINER := true
@@ -40,7 +42,7 @@ NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
 
 ifeq ($(BUILD_IN_CONTAINER),true)
 
-lint test shell:
+lint test shell protos:
 	@mkdir -p $(shell pwd)/.pkg
 	$(SUDO) docker run $(RM) -ti \
 		-v $(shell pwd)/.pkg:/go/pkg \
@@ -49,6 +51,11 @@ lint test shell:
 		$(BUILD_IMAGE) $@
 
 else
+
+protos: $(GENERATED_PROTOS)
+
+%.pb.go: %.proto
+	protoc --go_out=plugins=grpc:../../.. $<
 
 lint:
 	./tools/lint -notestpackage -ignorespelling queriers -ignorespelling Queriers .
