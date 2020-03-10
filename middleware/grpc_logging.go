@@ -3,8 +3,10 @@ package middleware
 import (
 	"time"
 
+	"github.com/gogo/status"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/user"
@@ -31,7 +33,7 @@ func (s GRPCServerLog) UnaryServerInterceptor(ctx context.Context, req interface
 		if s.WithRequest {
 			entry = entry.WithField("request", req)
 		}
-		if err == context.Canceled {
+		if err == context.Canceled || isGRPCContextCanceled(err) {
 			entry.WithField(errorKey, err).Debugln(gRPC)
 		} else {
 			entry.WithField(errorKey, err).Warnln(gRPC)
@@ -48,7 +50,7 @@ func (s GRPCServerLog) StreamServerInterceptor(srv interface{}, ss grpc.ServerSt
 	err := handler(srv, ss)
 	entry := user.LogWith(ss.Context(), s.Log).WithFields(logging.Fields{"method": info.FullMethod, "duration": time.Since(begin)})
 	if err != nil {
-		if err == context.Canceled {
+		if err == context.Canceled || isGRPCContextCanceled(err) {
 			entry.WithField(errorKey, err).Debugln(gRPC)
 		} else {
 			entry.WithField(errorKey, err).Warnln(gRPC)
@@ -57,4 +59,15 @@ func (s GRPCServerLog) StreamServerInterceptor(srv interface{}, ss grpc.ServerSt
 		entry.Debugf("%s (success)", gRPC)
 	}
 	return err
+}
+
+// isGRPCContextCanceled returns whether the input error is a GRPC error wrapping
+// the context.Canceled error.
+func isGRPCContextCanceled(err error) bool {
+	s, ok := status.FromError(err)
+	if !ok {
+		return false
+	}
+
+	return s.Code() == codes.Canceled
 }
