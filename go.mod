@@ -29,8 +29,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.4.1
-	github.com/prometheus/common v0.9.1
-	github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200417100735-fa4edd700ebc
+	github.com/prometheus/common v0.9.1 // indirect
+	github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289
 	github.com/sercand/kuberesolver v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
