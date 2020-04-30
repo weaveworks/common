@@ -379,9 +379,9 @@ func TestTLSServer(t *testing.T) {
 func TestStopWithDisabledSignalHandling(t *testing.T) {
 	cfg := Config{
 		HTTPListenAddress: "localhost",
-		HTTPListenPort:    9190,
+		HTTPListenPort:    9198,
 		GRPCListenAddress: "localhost",
-		GRPCListenPort:    9191,
+		GRPCListenPort:    9199,
 	}
 
 	var test = func(t *testing.T, disableSignalHandling bool) {
