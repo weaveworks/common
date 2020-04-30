@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
@@ -373,4 +374,39 @@ func TestTLSServer(t *testing.T) {
 	grpcRes, err := grpcClient.Succeed(context.Background(), &empty)
 	require.NoError(t, err)
 	require.EqualValues(t, &empty, grpcRes)
+}
+
+func TestStopWithDisabledSignalHandling(t *testing.T) {
+	cfg := Config{
+		HTTPListenAddress: "localhost",
+		HTTPListenPort:    9190,
+		GRPCListenAddress: "localhost",
+		GRPCListenPort:    9191,
+	}
+
+	var test = func(t *testing.T, disableSignalHandling bool) {
+		cfg.DisableSignalHandling = disableSignalHandling
+		cfg.MetricsNamespace = fmt.Sprintf("disable_signal_handling_%v", disableSignalHandling)
+		srv, err := New(cfg)
+		require.NoError(t, err)
+
+		errChan := make(chan error, 1)
+		go func() {
+			errChan <- srv.Run()
+		}()
+
+		srv.Stop()
+		require.Nil(t, <-errChan)
+
+		// So that addresses is freed for further tests.
+		srv.Shutdown()
+	}
+
+	t.Run("signals_enabled", func(t *testing.T) {
+		test(t, false)
+	})
+
+	t.Run("signals_disabled", func(t *testing.T) {
+		test(t, true)
+	})
 }

@@ -66,6 +66,8 @@ type Config struct {
 	GRPCServerTime                  time.Duration `yaml:"grpc_server_keepalive_time"`
 	GRPCServerTimeout               time.Duration `yaml:"grpc_server_keepalive_timeout"`
 
+	DisableSignalHandling bool // If set to true, Server will not react on SIGTERM/SIGHUP.
+
 	LogLevel logging.Level     `yaml:"log_level"`
 	Log      logging.Interface `yaml:"-"`
 
@@ -112,6 +114,7 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 // Servers will be automatically instrumented for Prometheus metrics.
 type Server struct {
 	cfg          Config
+	quit         chan struct{}
 	handler      *signals.Handler
 	grpcListener net.Listener
 	httpListener net.Listener
@@ -258,11 +261,17 @@ func New(cfg Config) (*Server, error) {
 		httpServer.TLSConfig = httpTLSConfig
 	}
 
+	var handler *signals.Handler
+	if !cfg.DisableSignalHandling {
+		handler = signals.NewHandler(log)
+	}
+
 	return &Server{
 		cfg:          cfg,
 		httpListener: httpListener,
 		grpcListener: grpcListener,
-		handler:      signals.NewHandler(log),
+		handler:      handler,
+		quit:         make(chan struct{}),
 
 		HTTP:       router,
 		HTTPServer: httpServer,
@@ -277,18 +286,28 @@ func RegisterInstrumentation(router *mux.Router) {
 	router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 }
 
-// Run the server; blocks until SIGTERM or an error is received.
+// Run the server; blocks until SIGTERM (if signal handling is enabled), an error is received, or Stop() is called.
 func (s *Server) Run() error {
 	errChan := make(chan error, 1)
 
-	// Wait for a signal
-	go func() {
-		s.handler.Loop()
-		select {
-		case errChan <- nil:
-		default:
-		}
-	}()
+	if s.handler != nil {
+		// Wait for a signal
+		go func() {
+			s.handler.Loop()
+			select {
+			case errChan <- nil:
+			default:
+			}
+		}()
+	} else {
+		go func() {
+			<-s.quit
+			select {
+			case errChan <- nil:
+			default:
+			}
+		}()
+	}
 
 	go func() {
 		var err error
@@ -328,7 +347,10 @@ func (s *Server) Run() error {
 
 // Stop unblocks Run().
 func (s *Server) Stop() {
-	s.handler.Stop()
+	if s.handler != nil {
+		s.handler.Stop()
+	}
+	close(s.quit)
 }
 
 // Shutdown the server, gracefully.  Should be defered after New().
