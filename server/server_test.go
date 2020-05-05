@@ -383,7 +383,7 @@ func TestStopWithDisabledSignalHandling(t *testing.T) {
 		GRPCListenPort:    9199,
 	}
 
-	var test = func(t *testing.T, metricsNamespace string, handler SignalsHandler) {
+	var test = func(t *testing.T, metricsNamespace string, handler SignalHandler) {
 		cfg.SignalHandler = handler
 		cfg.MetricsNamespace = metricsNamespace
 		srv, err := New(cfg)

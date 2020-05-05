@@ -31,7 +31,8 @@ import (
 	"github.com/weaveworks/common/signals"
 )
 
-type SignalsHandler interface {
+// SignalHandler used by Server.
+type SignalHandler interface {
 	// Starts the signals handler. This method is blocking, and returns only after signal is received,
 	// or "Stop" is called.
 	Loop()
@@ -79,7 +80,7 @@ type Config struct {
 	Log      logging.Interface `yaml:"-"`
 
 	// If not set, default signal handler is used.
-	SignalHandler SignalsHandler `yaml:"-"`
+	SignalHandler SignalHandler `yaml:"-"`
 
 	PathPrefix string `yaml:"http_path_prefix"`
 }
@@ -124,7 +125,7 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 // Servers will be automatically instrumented for Prometheus metrics.
 type Server struct {
 	cfg          Config
-	handler      SignalsHandler
+	handler      SignalHandler
 	grpcListener net.Listener
 	httpListener net.Listener
 
