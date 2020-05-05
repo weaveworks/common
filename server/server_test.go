@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
@@ -384,9 +383,9 @@ func TestStopWithDisabledSignalHandling(t *testing.T) {
 		GRPCListenPort:    9199,
 	}
 
-	var test = func(t *testing.T, disableSignalHandling bool) {
-		cfg.DisableSignalHandling = disableSignalHandling
-		cfg.MetricsNamespace = fmt.Sprintf("disable_signal_handling_%v", disableSignalHandling)
+	var test = func(t *testing.T, metricsNamespace string, handler SignalsHandler) {
+		cfg.SignalHandler = handler
+		cfg.MetricsNamespace = metricsNamespace
 		srv, err := New(cfg)
 		require.NoError(t, err)
 
@@ -403,10 +402,22 @@ func TestStopWithDisabledSignalHandling(t *testing.T) {
 	}
 
 	t.Run("signals_enabled", func(t *testing.T) {
-		test(t, false)
+		test(t, "signals_enabled", nil)
 	})
 
 	t.Run("signals_disabled", func(t *testing.T) {
-		test(t, true)
+		test(t, "signals_disabled", dummyHandler{quit: make(chan struct{})})
 	})
+}
+
+type dummyHandler struct {
+	quit chan struct{}
+}
+
+func (dh dummyHandler) Loop() {
+	<-dh.quit
+}
+
+func (dh dummyHandler) Stop() {
+	close(dh.quit)
 }
