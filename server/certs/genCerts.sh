@@ -3,7 +3,7 @@
 certFolder=$1
 days=$2
 
-pushd "$certFolder" || exit
+pushd "$certFolder"
 
 # keys
 openssl genrsa -out root.key
@@ -20,4 +20,4 @@ openssl req -new -sha256 -key server.key -subj "/C=US/ST=KY/O=Org/CN=localhost" 
 openssl x509 -req -in client.csr -CA root.crt -CAkey root.key -CAcreateserial -out client.crt -days "$days" -sha256
 openssl x509 -req -in server.csr -CA root.crt -CAkey root.key -CAcreateserial -out server.crt -days "$days" -sha256
 
-popd || exit
+popd
