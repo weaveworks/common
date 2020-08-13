@@ -38,8 +38,10 @@ require (
 	github.com/uber/jaeger-lib v1.5.1-0.20181102163054-1fc5c315e03c
 	github.com/weaveworks/promrus v1.2.0
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20200216192241-b320d3a0f5a2
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55 // indirect
 	google.golang.org/grpc v1.26.0
 	gopkg.in/yaml.v2 v2.2.8
+	gotest.tools v2.2.0+incompatible
 )
