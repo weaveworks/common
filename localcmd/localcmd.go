@@ -1,4 +1,4 @@
-package kubectl
+package localcmd
 
 import (
 	"bytes"
@@ -10,40 +10,38 @@ import (
 	"sync"
 )
 
-// Command is the name of kubectl command
-const Command = "kubectl"
-
-// LocalClient implements Kubectl
-type LocalClient struct {
+// LocalCmd runs a command locally
+type LocalCmd struct {
+	Command    string
 	GlobalArgs []string
 	Env        []string
 }
 
 // LookPath conveniently wraps exec.LookPath(Command)
-func (k LocalClient) LookPath() (string, error) { return exec.LookPath(Command) }
+func (k LocalCmd) LookPath() (string, error) { return exec.LookPath(k.Command) }
 
-// IsPresent returns true if there's a kubectl command in the PATH.
-func (k LocalClient) IsPresent() bool {
+// IsPresent returns true if there's a command in the PATH.
+func (k LocalCmd) IsPresent() bool {
 	_, err := k.LookPath()
 	return err == nil
 }
 
-// Execute executes kubectl <args> and returns the combined stdout/err output.
-func (k LocalClient) Execute(args ...string) (string, error) {
-	cmd := exec.Command(Command, append(k.GlobalArgs, args...)...)
+// Execute executes command <args> and returns the combined stdout/err output.
+func (k LocalCmd) Execute(args ...string) (string, error) {
+	cmd := exec.Command(k.Command, append(k.GlobalArgs, args...)...)
 	cmd.Env = append(os.Environ(), k.Env...)
 	stdout, stderr, err := outputMatrix(cmd)
 	if err != nil {
-		// Kubectl error messages output to stdout
+		// error messages output to stdout
 		return "", fmt.Errorf("%s\nFull output:\n%s\n%s", trimOutput(stderr), trimOutput(stdout), trimOutput(stderr))
 	}
 	combined := fmt.Sprintf("%s\n%s", stdout, stderr)
 	return trimOutput(combined), nil
 }
 
-// ExecuteOutputMatrix executes kubectl <args> and returns stdout and stderr
-func (k LocalClient) ExecuteOutputMatrix(args ...string) (stdout, stderr string, err error) {
-	cmd := exec.Command(Command, append(k.GlobalArgs, args...)...)
+// ExecuteOutputMatrix executes command <args> and returns stdout and stderr
+func (k LocalCmd) ExecuteOutputMatrix(args ...string) (stdout, stderr string, err error) {
+	cmd := exec.Command(k.Command, append(k.GlobalArgs, args...)...)
 	cmd.Env = append(os.Environ(), k.Env...)
 	return outputMatrix(cmd)
 }

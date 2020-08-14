@@ -1,4 +1,4 @@
-package kubectl
+package localcmd
 
 import (
 	"os/exec"
@@ -24,8 +24,8 @@ func TestTrimOutput(t *testing.T) {
 	}
 }
 
-func ExampleLocalClient() {
-	local := LocalClient{}
+func ExampleLocalCmd() {
+	local := LocalCmd{Command: "kubectl"}
 	local.Execute("apply", "-f", "service.yaml")
 }
 
