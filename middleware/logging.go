@@ -13,18 +13,23 @@ import (
 
 // Log middleware logs http requests
 type Log struct {
-	Log               logging.Interface
-	LogRequestHeaders bool // LogRequestHeaders true -> dump http headers at debug log level
+	Log                logging.Interface
+	HighVolumeErrorLog logging.Interface
+	LogRequestHeaders  bool // LogRequestHeaders true -> dump http headers at debug log level
 }
 
 // logWithRequest information from the request and context as fields.
 func (l Log) logWithRequest(r *http.Request) logging.Interface {
+	return l.logWithRequestAndLog(r, l.Log)
+}
+
+func (l Log) logWithRequestAndLog(r *http.Request, logger logging.Interface) logging.Interface {
 	traceID, ok := ExtractTraceID(r.Context())
 	if ok {
-		l.Log = l.Log.WithField("traceID", traceID)
+		logger = logger.WithField("traceID", traceID)
 	}
 
-	return user.LogWith(r.Context(), l.Log)
+	return user.LogWith(r.Context(), logger)
 }
 
 // Wrap implements Middleware
@@ -53,16 +58,29 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 
 			return
 		}
-		if 100 <= statusCode && statusCode < 500 || statusCode == http.StatusBadGateway || statusCode == http.StatusServiceUnavailable {
+		if 100 <= statusCode && statusCode < 500 {
 			l.logWithRequest(r).Debugf("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
 			if l.LogRequestHeaders && headers != nil {
 				l.logWithRequest(r).Debugf("ws: %v; %s", IsWSHandshakeRequest(r), string(headers))
+			}
+		} else if statusCode == http.StatusBadGateway || statusCode == http.StatusServiceUnavailable {
+			l.logHighVolumeError(r, "%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
+			if l.LogRequestHeaders && headers != nil {
+				l.logHighVolumeError(r, "ws: %v; %s", IsWSHandshakeRequest(r), string(headers))
 			}
 		} else {
 			l.logWithRequest(r).Warnf("%s %s (%d) %s Response: %q ws: %v; %s",
 				r.Method, uri, statusCode, time.Since(begin), buf.Bytes(), IsWSHandshakeRequest(r), headers)
 		}
 	})
+}
+
+func (l Log) logHighVolumeError(r *http.Request, format string, args ...interface{}) {
+	if l.HighVolumeErrorLog != nil {
+		l.logWithRequestAndLog(r, l.HighVolumeErrorLog).Warnf(format, args...)
+	} else {
+		l.logWithRequest(r).Debugf(format, args...)
+	}
 }
 
 // Logging middleware logs each HTTP request method, path, response code and

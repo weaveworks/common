@@ -19,6 +19,7 @@ import (
 	node_https "github.com/prometheus/node_exporter/https"
 	"golang.org/x/net/context"
 	"golang.org/x/net/netutil"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
@@ -76,9 +77,10 @@ type Config struct {
 	GRPCServerTime                  time.Duration `yaml:"grpc_server_keepalive_time"`
 	GRPCServerTimeout               time.Duration `yaml:"grpc_server_keepalive_timeout"`
 
-	LogFormat logging.Format    `yaml:"log_format"`
-	LogLevel  logging.Level     `yaml:"log_level"`
-	Log       logging.Interface `yaml:"-"`
+	LogFormat    logging.Format    `yaml:"log_format"`
+	LogErrorRate int               `yaml:"log_error_rate"`
+	LogLevel     logging.Level     `yaml:"log_level"`
+	Log          logging.Interface `yaml:"-"`
 
 	// If not set, default signal handler is used.
 	SignalHandler SignalHandler `yaml:"-"`
@@ -162,6 +164,11 @@ func New(cfg Config) (*Server, error) {
 	log := cfg.Log
 	if log == nil {
 		log = logging.NewLogrus(cfg.LogLevel)
+	}
+
+	var highVolumeErrorLog logging.Interface
+	if cfg.LogErrorRate > 0 {
+		highVolumeErrorLog = logging.NewRateLimitedLogger(log, rate.Limit(cfg.LogErrorRate))
 	}
 
 	// Setup TLS
@@ -254,7 +261,8 @@ func New(cfg Config) (*Server, error) {
 			RouteMatcher: router,
 		},
 		middleware.Log{
-			Log: log,
+			Log:                log,
+			HighVolumeErrorLog: highVolumeErrorLog,
 		},
 		middleware.Instrument{
 			Duration:     requestDuration,
