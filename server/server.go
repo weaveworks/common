@@ -62,10 +62,12 @@ type Config struct {
 	HTTPServerWriteTimeout        time.Duration `yaml:"http_server_write_timeout"`
 	HTTPServerIdleTimeout         time.Duration `yaml:"http_server_idle_timeout"`
 
-	GRPCOptions          []grpc.ServerOption            `yaml:"-"`
-	GRPCMiddleware       []grpc.UnaryServerInterceptor  `yaml:"-"`
-	GRPCStreamMiddleware []grpc.StreamServerInterceptor `yaml:"-"`
-	HTTPMiddleware       []middleware.Interface         `yaml:"-"`
+	GRPCOptions                    []grpc.ServerOption            `yaml:"-"`
+	GRPCMiddleware                 []grpc.UnaryServerInterceptor  `yaml:"-"`
+	GRPCStreamMiddleware           []grpc.StreamServerInterceptor `yaml:"-"`
+	HTTPMiddleware                 []middleware.Interface         `yaml:"-"`
+	Router                         *mux.Router                    `yaml:"-"`
+	DisableGeneratedHTTPMiddleware bool                           `yaml:"-"`
 
 	GPRCServerMaxRecvMsgSize        int           `yaml:"grpc_server_max_recv_msg_size"`
 	GRPCServerMaxSendMsgSize        int           `yaml:"grpc_server_max_send_msg_size"`
@@ -240,7 +242,12 @@ func New(cfg Config) (*Server, error) {
 	grpcServer := grpc.NewServer(grpcOptions...)
 
 	// Setup HTTP server
-	router := mux.NewRouter()
+	var router *mux.Router
+	if cfg.Router != nil {
+		router = cfg.Router
+	} else {
+		router = mux.NewRouter()
+	}
 	if cfg.PathPrefix != "" {
 		// Expect metrics and pprof handlers to be prefixed with server's path prefix.
 		// e.g. /loki/metrics or /loki/debug/pprof
@@ -249,7 +256,7 @@ func New(cfg Config) (*Server, error) {
 	if cfg.RegisterInstrumentation {
 		RegisterInstrumentation(router)
 	}
-	httpMiddleware := []middleware.Interface{
+	defaultHTTPMiddleware := []middleware.Interface{
 		middleware.Tracer{
 			RouteMatcher: router,
 		},
@@ -261,7 +268,10 @@ func New(cfg Config) (*Server, error) {
 			RouteMatcher: router,
 		},
 	}
-
+	httpMiddleware := []middleware.Interface{}
+	if !cfg.DisableGeneratedHTTPMiddleware {
+		httpMiddleware = append(httpMiddleware, defaultHTTPMiddleware...)
+	}
 	httpMiddleware = append(httpMiddleware, cfg.HTTPMiddleware...)
 	httpServer := &http.Server{
 		ReadTimeout:  cfg.HTTPServerReadTimeout,
