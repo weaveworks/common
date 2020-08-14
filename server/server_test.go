@@ -12,13 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 
 	google_protobuf "github.com/golang/protobuf/ptypes/empty"
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	node_https "github.com/prometheus/node_exporter/https"
 	"github.com/stretchr/testify/require"
