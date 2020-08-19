@@ -24,7 +24,7 @@ DOCKER_IMAGE_DIRS=$(patsubst %/Dockerfile,%,$(DOCKERFILES))
 
 all: $(UPTODATE_FILES)
 
-GENERATED_PROTOS=server/fake_server.pb.go httpgrpc/httpgrpc.pb.go
+GENERATED_PROTOS=server/fake_server.pb.go httpgrpc/httpgrpc.pb.go middleware/middleware_test/echo_server.pb.go
 
 # All the boiler plate for building golang follows:
 SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
