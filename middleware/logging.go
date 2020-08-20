@@ -73,9 +73,10 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 				l.logWithRequest(r).Debugf("ws: %v; %s", IsWSHandshakeRequest(r), string(headers))
 			}
 		} else if statusCode == http.StatusBadGateway || statusCode == http.StatusServiceUnavailable {
-			l.logHighVolumeError(r, "%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
-			if l.LogRequestHeaders && headers != nil {
-				l.logHighVolumeError(r, "ws: %v; %s", IsWSHandshakeRequest(r), string(headers))
+			if l.LogRequestHeaders {
+				l.logHighVolumeError(r, "%s %s (%d) %s %v %s", r.Method, uri, statusCode, time.Since(begin), IsWSHandshakeRequest(r), string(headers))
+			} else {
+				l.logHighVolumeError(r, "%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
 			}
 		} else {
 			l.logWithRequest(r).Warnf("%s %s (%d) %s Response: %q ws: %v; %s",
