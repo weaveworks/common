@@ -16,6 +16,7 @@ type Log struct {
 	Log                logging.Interface
 	HighVolumeErrorLog logging.Interface
 	LogRequestHeaders  bool // LogRequestHeaders true -> dump http headers at debug log level
+	SourceIPs          *SourceIPExtractor
 }
 
 // logWithRequest information from the request and context as fields.
@@ -24,12 +25,20 @@ func (l Log) logWithRequest(r *http.Request) logging.Interface {
 }
 
 func (l Log) logWithRequestAndLog(r *http.Request, logger logging.Interface) logging.Interface {
+	localLog := l.Log
 	traceID, ok := ExtractTraceID(r.Context())
 	if ok {
-		logger = logger.WithField("traceID", traceID)
+		localLog = localLog.WithField("traceID", traceID)
 	}
 
-	return user.LogWith(r.Context(), logger)
+	if l.SourceIPs != nil {
+		ips := l.SourceIPs.Get(r)
+		if ips != "" {
+			localLog = localLog.WithField("sourceIPs", ips)
+		}
+	}
+
+	return user.LogWith(r.Context(), localLog)
 }
 
 // Wrap implements Middleware
