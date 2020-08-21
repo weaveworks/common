@@ -286,10 +286,12 @@ func New(cfg Config) (*Server, error) {
 		},
 	}
 	httpMiddleware := []middleware.Interface{}
-	if !cfg.DoNotAddDefaultHTTPMiddleware {
-		httpMiddleware = append(httpMiddleware, defaultHTTPMiddleware...)
+	if cfg.DoNotAddDefaultHTTPMiddleware {
+		httpMiddleware = cfg.HTTPMiddleware
+	} else {
+		httpMiddleware = append(defaultHTTPMiddleware, cfg.HTTPMiddleware...)
 	}
-	httpMiddleware = append(httpMiddleware, cfg.HTTPMiddleware...)
+
 	httpServer := &http.Server{
 		ReadTimeout:  cfg.HTTPServerReadTimeout,
 		WriteTimeout: cfg.HTTPServerWriteTimeout,
