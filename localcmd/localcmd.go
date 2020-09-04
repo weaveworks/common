@@ -62,7 +62,7 @@ func outputMatrix(cmd *exec.Cmd) (stdout, stderr string, err error) {
 }
 
 // ReadAllOutput reads all output on two pipes into two strings
-func ReadAllOutput(stdoutPipe, stderrPipe io.ReadCloser) (stdout, stderr string, err error) {
+func ReadAllOutput(stdoutPipe, stderrPipe io.Reader) (stdout, stderr string, err error) {
 	var stdoutBuf, stderrBuf bytes.Buffer
 	var errStdOut, errStdErr error
 	var wg sync.WaitGroup
