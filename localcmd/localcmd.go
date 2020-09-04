@@ -47,25 +47,35 @@ func (k LocalCmd) ExecuteOutputMatrix(args ...string) (stdout, stderr string, er
 }
 
 func outputMatrix(cmd *exec.Cmd) (stdout, stderr string, err error) {
-	var stdoutBuf, stderrBuf bytes.Buffer
 	stdoutPipe, _ := cmd.StdoutPipe()
 	stderrPipe, _ := cmd.StderrPipe()
+	err = cmd.Start()
+	if err != nil {
+		return
+	}
+	stdout, stderr, err = ReadAllOutput(stdoutPipe, stderrPipe)
+	if err != nil {
+		return
+	}
+	err = cmd.Wait()
+	return
+}
 
+// ReadAllOutput reads all output on two pipes into two strings
+func ReadAllOutput(stdoutPipe, stderrPipe io.ReadCloser) (stdout, stderr string, err error) {
+	var stdoutBuf, stderrBuf bytes.Buffer
 	var wg sync.WaitGroup
 	copy := func(dst io.Writer, src io.Reader) {
 		defer wg.Done()
 		_, _ = io.Copy(dst, src)
 	}
 
-	err = cmd.Start()
-	if err == nil {
-		wg.Add(2)
-		go copy(&stdoutBuf, stdoutPipe)
-		go copy(&stderrBuf, stderrPipe)
-		// we need to wait for all reads to finish before calling cmd.Wait
-		wg.Wait()
-		err = cmd.Wait()
-	}
+	wg.Add(2)
+	go copy(&stdoutBuf, stdoutPipe)
+	go copy(&stderrBuf, stderrPipe)
+	// wait for all reads to finish
+	wg.Wait()
+
 	stdout, stderr = string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	return
 }
