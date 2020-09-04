@@ -64,17 +64,24 @@ func outputMatrix(cmd *exec.Cmd) (stdout, stderr string, err error) {
 // ReadAllOutput reads all output on two pipes into two strings
 func ReadAllOutput(stdoutPipe, stderrPipe io.ReadCloser) (stdout, stderr string, err error) {
 	var stdoutBuf, stderrBuf bytes.Buffer
+	var errStdOut, errStdErr error
 	var wg sync.WaitGroup
-	copy := func(dst io.Writer, src io.Reader) {
+	copy := func(dst io.Writer, src io.Reader, err *error) {
 		defer wg.Done()
-		_, _ = io.Copy(dst, src)
+		_, *err = io.Copy(dst, src)
 	}
 
 	wg.Add(2)
-	go copy(&stdoutBuf, stdoutPipe)
-	go copy(&stderrBuf, stderrPipe)
+	go copy(&stdoutBuf, stdoutPipe, &errStdOut)
+	go copy(&stderrBuf, stderrPipe, &errStdErr)
 	// wait for all reads to finish
 	wg.Wait()
+
+	if errStdOut != nil {
+		err = fmt.Errorf("failed while capturing stdout: %w", errStdOut)
+	} else if errStdErr != nil {
+		err = fmt.Errorf("failed while capturing stderr: %w", errStdErr)
+	}
 
 	stdout, stderr = string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	return
