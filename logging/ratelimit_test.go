@@ -41,3 +41,13 @@ func TestRateLimitedLoggerLimits(t *testing.T) {
 	r.Infoln("asdf")
 	assert.Equal(t, 1, c.count)
 }
+
+func TestRateLimitedLoggerWith(t *testing.T) {
+	c := &counterLogger{}
+	r := NewRateLimitedLogger(c, 1)
+	r2 := r.WithField("key", "value")
+
+	r2.Errorln("asdf")
+	r2.Warnln("asdf")
+	assert.Equal(t, 1, c.count)
+}

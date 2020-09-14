@@ -67,13 +67,13 @@ func (l *rateLimitedLogger) Warnln(args ...interface{}) {
 func (l *rateLimitedLogger) WithField(key string, value interface{}) Interface {
 	return &rateLimitedLogger{
 		next:    l.next.WithField(key, value),
-		limiter: rate.NewLimiter(l.limiter.Limit(), 0),
+		limiter: rate.NewLimiter(l.limiter.Limit(), 1),
 	}
 }
 
 func (l *rateLimitedLogger) WithFields(f Fields) Interface {
 	return &rateLimitedLogger{
 		next:    l.next.WithFields(f),
-		limiter: rate.NewLimiter(l.limiter.Limit(), 0),
+		limiter: rate.NewLimiter(l.limiter.Limit(), 1),
 	}
 }
