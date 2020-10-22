@@ -1,6 +1,8 @@
 package user
 
 import (
+	"reflect"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
@@ -14,16 +16,16 @@ func ExtractFromGRPCRequest(ctx context.Context) (string, context.Context, error
 	}
 
 	orgIDs, ok := md[lowerOrgIDHeaderName]
-	if !ok || len(orgIDs) != 1 {
+	if !ok || len(orgIDs) < 1 {
 		return "", ctx, ErrNoOrgID
 	}
 
-	return orgIDs[0], InjectOrgID(ctx, orgIDs[0]), nil
+	return orgIDs[0], InjectOrgIDs(ctx, orgIDs), nil
 }
 
-// InjectIntoGRPCRequest injects the orgID from the context into the request metadata.
+// InjectIntoGRPCRequest injects the orgIDs from the context into the request metadata.
 func InjectIntoGRPCRequest(ctx context.Context) (context.Context, error) {
-	orgID, err := ExtractOrgID(ctx)
+	orgIDs, err := ExtractOrgIDs(ctx)
 	if err != nil {
 		return ctx, err
 	}
@@ -33,19 +35,14 @@ func InjectIntoGRPCRequest(ctx context.Context) (context.Context, error) {
 		md = metadata.New(map[string]string{})
 	}
 	newCtx := ctx
-	if orgIDs, ok := md[lowerOrgIDHeaderName]; ok {
-		if len(orgIDs) == 1 {
-			if orgIDs[0] != orgID {
-				return ctx, ErrDifferentOrgIDPresent
-			}
-		} else {
+	if existingIDs, ok := md[lowerOrgIDHeaderName]; ok {
+		if !reflect.DeepEqual(orgIDs, existingIDs) {
 			return ctx, ErrTooManyOrgIDs
 		}
 	} else {
 		md = md.Copy()
-		md[lowerOrgIDHeaderName] = []string{orgID}
+		md[lowerOrgIDHeaderName] = orgIDs
 		newCtx = metadata.NewOutgoingContext(ctx, md)
 	}
-
 	return newCtx, nil
 }

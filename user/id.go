@@ -25,18 +25,32 @@ const (
 	ErrTooManyUserIDs         = errors.Error("multiple user IDs present")
 )
 
-// ExtractOrgID gets the org ID from the context.
+// ExtractOrgID gets the first org ID from the context.
 func ExtractOrgID(ctx context.Context) (string, error) {
-	orgID, ok := ctx.Value(orgIDContextKey).(string)
-	if !ok {
-		return "", ErrNoOrgID
+	orgIDs, err := ExtractOrgIDs(ctx)
+	if err != nil {
+		return "", err
 	}
-	return orgID, nil
+	return orgIDs[0], nil
 }
 
-// InjectOrgID returns a derived context containing the org ID.
+// ExtractOrgIDs gets a list of org IDs from the context.
+func ExtractOrgIDs(ctx context.Context) ([]string, error) {
+	orgIDs, ok := ctx.Value(orgIDContextKey).([]string)
+	if !ok || len(orgIDs) == 0 {
+		return nil, ErrNoOrgID
+	}
+	return orgIDs, nil
+}
+
+// InjectOrgID returns a derived context containing a single org ID.
 func InjectOrgID(ctx context.Context, orgID string) context.Context {
-	return context.WithValue(ctx, interface{}(orgIDContextKey), orgID)
+	return context.WithValue(ctx, interface{}(orgIDContextKey), []string{orgID})
+}
+
+// InjectOrgIDs returns a derived context containing the org IDs.
+func InjectOrgIDs(ctx context.Context, orgIDs []string) context.Context {
+	return context.WithValue(ctx, interface{}(orgIDContextKey), orgIDs)
 }
 
 // ExtractUserID gets the user ID from the context.

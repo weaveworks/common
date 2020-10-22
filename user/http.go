@@ -2,6 +2,8 @@ package user
 
 import (
 	"net/http"
+	"net/textproto"
+	"reflect"
 
 	"golang.org/x/net/context"
 )
@@ -21,24 +23,28 @@ const (
 // ExtractOrgIDFromHTTPRequest extracts the org ID from the request headers and returns
 // the org ID and a context with the org ID embedded.
 func ExtractOrgIDFromHTTPRequest(r *http.Request) (string, context.Context, error) {
-	orgID := r.Header.Get(OrgIDHeaderName)
-	if orgID == "" {
+	orgIDs, ok := r.Header[textproto.CanonicalMIMEHeaderKey(OrgIDHeaderName)]
+	if !ok || len(orgIDs) == 0 {
 		return "", r.Context(), ErrNoOrgID
 	}
-	return orgID, InjectOrgID(r.Context(), orgID), nil
+	return orgIDs[0], InjectOrgIDs(r.Context(), orgIDs), nil
 }
 
 // InjectOrgIDIntoHTTPRequest injects the orgID from the context into the request headers.
 func InjectOrgIDIntoHTTPRequest(ctx context.Context, r *http.Request) error {
-	orgID, err := ExtractOrgID(ctx)
+	orgIDs, err := ExtractOrgIDs(ctx)
 	if err != nil {
 		return err
 	}
-	existingID := r.Header.Get(OrgIDHeaderName)
-	if existingID != "" && existingID != orgID {
+
+	existingIDs := r.Header[textproto.CanonicalMIMEHeaderKey(OrgIDHeaderName)]
+	if len(existingIDs) > 0 && !reflect.DeepEqual(existingIDs, orgIDs) {
 		return ErrDifferentOrgIDPresent
 	}
-	r.Header.Set(OrgIDHeaderName, orgID)
+
+	for _, orgID := range orgIDs {
+		r.Header.Add(OrgIDHeaderName, orgID)
+	}
 	return nil
 }
 

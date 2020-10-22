@@ -13,9 +13,13 @@ func LogWith(ctx context.Context, log logging.Interface) logging.Interface {
 		log = log.WithField("userID", userID)
 	}
 
-	orgID, err := ExtractOrgID(ctx)
+	orgIDs, err := ExtractOrgIDs(ctx)
 	if err == nil {
-		log = log.WithField("orgID", orgID)
+		if len(orgIDs) == 1 {
+			log = log.WithField("orgID", orgIDs[0])
+		} else {
+			log = log.WithField("orgIDs", orgIDs)
+		}
 	}
 
 	return log
