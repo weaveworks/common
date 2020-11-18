@@ -93,41 +93,63 @@ type Config struct {
 
 var infinty = time.Duration(math.MaxInt64)
 
+func (cfg *Config) DefaultValues() {
+	cfg.HTTPListenPort = 80
+	cfg.GRPCListenPort = 9095
+	cfg.RegisterInstrumentation = true
+	cfg.ServerGracefulShutdownTimeout = 30 * time.Second
+	cfg.HTTPServerReadTimeout = 30 * time.Second
+	cfg.HTTPServerWriteTimeout = 30 * time.Second
+	cfg.HTTPServerIdleTimeout = 120 * time.Second
+	cfg.GPRCServerMaxRecvMsgSize = 4 * 1024 * 1024
+	cfg.GRPCServerMaxSendMsgSize = 4 * 1024 * 1024
+	cfg.GPRCServerMaxConcurrentStreams = 100
+	cfg.GRPCServerMaxConnectionIdle = infinty
+	cfg.GRPCServerMaxConnectionAge = infinty
+	cfg.GRPCServerMaxConnectionAgeGrace = infinty
+	cfg.GRPCServerTime = time.Hour * 2
+	cfg.GRPCServerTimeout = time.Second * 20
+
+	cfg.LogFormat.DefaultValues()
+	cfg.LogLevel.DefaultValues()
+}
+
 // RegisterFlags adds the flags required to config this to the given FlagSet
 func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
-	f.StringVar(&cfg.HTTPListenAddress, "server.http-listen-address", "", "HTTP server listen address.")
-	f.StringVar(&cfg.HTTPTLSConfig.TLSCertPath, "server.http-tls-cert-path", "", "HTTP server cert path.")
-	f.StringVar(&cfg.HTTPTLSConfig.TLSKeyPath, "server.http-tls-key-path", "", "HTTP server key path.")
-	f.StringVar(&cfg.HTTPTLSConfig.ClientAuth, "server.http-tls-client-auth", "", "HTTP TLS Client Auth type.")
-	f.StringVar(&cfg.HTTPTLSConfig.ClientCAs, "server.http-tls-ca-path", "", "HTTP TLS Client CA path.")
-	f.StringVar(&cfg.GRPCTLSConfig.TLSCertPath, "server.grpc-tls-cert-path", "", "GRPC TLS server cert path.")
-	f.StringVar(&cfg.GRPCTLSConfig.TLSKeyPath, "server.grpc-tls-key-path", "", "GRPC TLS server key path.")
-	f.StringVar(&cfg.GRPCTLSConfig.ClientAuth, "server.grpc-tls-client-auth", "", "GRPC TLS Client Auth type.")
-	f.StringVar(&cfg.GRPCTLSConfig.ClientCAs, "server.grpc-tls-ca-path", "", "GRPC TLS Client CA path.")
-	f.IntVar(&cfg.HTTPListenPort, "server.http-listen-port", 80, "HTTP server listen port.")
-	f.IntVar(&cfg.HTTPConnLimit, "server.http-conn-limit", 0, "Maximum number of simultaneous http connections, <=0 to disable")
-	f.StringVar(&cfg.GRPCListenAddress, "server.grpc-listen-address", "", "gRPC server listen address.")
-	f.IntVar(&cfg.GRPCListenPort, "server.grpc-listen-port", 9095, "gRPC server listen port.")
-	f.IntVar(&cfg.GRPCConnLimit, "server.grpc-conn-limit", 0, "Maximum number of simultaneous grpc connections, <=0 to disable")
-	f.BoolVar(&cfg.RegisterInstrumentation, "server.register-instrumentation", true, "Register the intrumentation handlers (/metrics etc).")
-	f.DurationVar(&cfg.ServerGracefulShutdownTimeout, "server.graceful-shutdown-timeout", 30*time.Second, "Timeout for graceful shutdowns")
-	f.DurationVar(&cfg.HTTPServerReadTimeout, "server.http-read-timeout", 30*time.Second, "Read timeout for HTTP server")
-	f.DurationVar(&cfg.HTTPServerWriteTimeout, "server.http-write-timeout", 30*time.Second, "Write timeout for HTTP server")
-	f.DurationVar(&cfg.HTTPServerIdleTimeout, "server.http-idle-timeout", 120*time.Second, "Idle timeout for HTTP server")
-	f.IntVar(&cfg.GPRCServerMaxRecvMsgSize, "server.grpc-max-recv-msg-size-bytes", 4*1024*1024, "Limit on the size of a gRPC message this server can receive (bytes).")
-	f.IntVar(&cfg.GRPCServerMaxSendMsgSize, "server.grpc-max-send-msg-size-bytes", 4*1024*1024, "Limit on the size of a gRPC message this server can send (bytes).")
-	f.UintVar(&cfg.GPRCServerMaxConcurrentStreams, "server.grpc-max-concurrent-streams", 100, "Limit on the number of concurrent streams for gRPC calls (0 = unlimited)")
-	f.DurationVar(&cfg.GRPCServerMaxConnectionIdle, "server.grpc.keepalive.max-connection-idle", infinty, "The duration after which an idle connection should be closed. Default: infinity")
-	f.DurationVar(&cfg.GRPCServerMaxConnectionAge, "server.grpc.keepalive.max-connection-age", infinty, "The duration for the maximum amount of time a connection may exist before it will be closed. Default: infinity")
-	f.DurationVar(&cfg.GRPCServerMaxConnectionAgeGrace, "server.grpc.keepalive.max-connection-age-grace", infinty, "An additive period after max-connection-age after which the connection will be forcibly closed. Default: infinity")
-	f.DurationVar(&cfg.GRPCServerTime, "server.grpc.keepalive.time", time.Hour*2, "Duration after which a keepalive probe is sent in case of no activity over the connection., Default: 2h")
-	f.DurationVar(&cfg.GRPCServerTimeout, "server.grpc.keepalive.timeout", time.Second*20, "After having pinged for keepalive check, the duration after which an idle connection should be closed, Default: 20s")
-	f.StringVar(&cfg.PathPrefix, "server.path-prefix", "", "Base path to serve all API routes from (e.g. /v1/)")
+	f.StringVar(&cfg.HTTPListenAddress, "server.http-listen-address", cfg.HTTPListenAddress, "HTTP server listen address.")
+	f.StringVar(&cfg.HTTPTLSConfig.TLSCertPath, "server.http-tls-cert-path", cfg.HTTPTLSConfig.TLSCertPath, "HTTP server cert path.")
+	f.StringVar(&cfg.HTTPTLSConfig.TLSKeyPath, "server.http-tls-key-path", cfg.HTTPTLSConfig.TLSKeyPath, "HTTP server key path.")
+	f.StringVar(&cfg.HTTPTLSConfig.ClientAuth, "server.http-tls-client-auth", cfg.HTTPTLSConfig.ClientAuth, "HTTP TLS Client Auth type.")
+	f.StringVar(&cfg.HTTPTLSConfig.ClientCAs, "server.http-tls-ca-path", cfg.HTTPTLSConfig.ClientCAs, "HTTP TLS Client CA path.")
+	f.StringVar(&cfg.GRPCTLSConfig.TLSCertPath, "server.grpc-tls-cert-path", cfg.GRPCTLSConfig.TLSCertPath, "GRPC TLS server cert path.")
+	f.StringVar(&cfg.GRPCTLSConfig.TLSKeyPath, "server.grpc-tls-key-path", cfg.GRPCTLSConfig.TLSKeyPath, "GRPC TLS server key path.")
+	f.StringVar(&cfg.GRPCTLSConfig.ClientAuth, "server.grpc-tls-client-auth", cfg.GRPCTLSConfig.ClientAuth, "GRPC TLS Client Auth type.")
+	f.StringVar(&cfg.GRPCTLSConfig.ClientCAs, "server.grpc-tls-ca-path", cfg.GRPCTLSConfig.ClientCAs, "GRPC TLS Client CA path.")
+	f.IntVar(&cfg.HTTPListenPort, "server.http-listen-port", cfg.HTTPListenPort, "HTTP server listen port.")
+	f.IntVar(&cfg.HTTPConnLimit, "server.http-conn-limit", cfg.HTTPConnLimit, "Maximum number of simultaneous http connections, <=0 to disable")
+	f.StringVar(&cfg.GRPCListenAddress, "server.grpc-listen-address", cfg.GRPCListenAddress, "gRPC server listen address.")
+	f.IntVar(&cfg.GRPCListenPort, "server.grpc-listen-port", cfg.GRPCListenPort, "gRPC server listen port.")
+	f.IntVar(&cfg.GRPCConnLimit, "server.grpc-conn-limit", cfg.GRPCConnLimit, "Maximum number of simultaneous grpc connections, <=0 to disable")
+	f.BoolVar(&cfg.RegisterInstrumentation, "server.register-instrumentation", cfg.RegisterInstrumentation, "Register the intrumentation handlers (/metrics etc).")
+	f.DurationVar(&cfg.ServerGracefulShutdownTimeout, "server.graceful-shutdown-timeout", cfg.ServerGracefulShutdownTimeout, "Timeout for graceful shutdowns")
+	f.DurationVar(&cfg.HTTPServerReadTimeout, "server.http-read-timeout", cfg.HTTPServerReadTimeout, "Read timeout for HTTP server")
+	f.DurationVar(&cfg.HTTPServerWriteTimeout, "server.http-write-timeout", cfg.HTTPServerWriteTimeout, "Write timeout for HTTP server")
+	f.DurationVar(&cfg.HTTPServerIdleTimeout, "server.http-idle-timeout", cfg.HTTPServerIdleTimeout, "Idle timeout for HTTP server")
+	f.IntVar(&cfg.GPRCServerMaxRecvMsgSize, "server.grpc-max-recv-msg-size-bytes", cfg.GPRCServerMaxRecvMsgSize, "Limit on the size of a gRPC message this server can receive (bytes).")
+	f.IntVar(&cfg.GRPCServerMaxSendMsgSize, "server.grpc-max-send-msg-size-bytes", cfg.GRPCServerMaxSendMsgSize, "Limit on the size of a gRPC message this server can send (bytes).")
+	f.UintVar(&cfg.GPRCServerMaxConcurrentStreams, "server.grpc-max-concurrent-streams", cfg.GPRCServerMaxConcurrentStreams, "Limit on the number of concurrent streams for gRPC calls (0 = unlimited)")
+	f.DurationVar(&cfg.GRPCServerMaxConnectionIdle, "server.grpc.keepalive.max-connection-idle", cfg.GRPCServerMaxConnectionIdle, "The duration after which an idle connection should be closed. Default: infinity")
+	f.DurationVar(&cfg.GRPCServerMaxConnectionAge, "server.grpc.keepalive.max-connection-age", cfg.GRPCServerMaxConnectionAge, "The duration for the maximum amount of time a connection may exist before it will be closed. Default: infinity")
+	f.DurationVar(&cfg.GRPCServerMaxConnectionAgeGrace, "server.grpc.keepalive.max-connection-age-grace", cfg.GRPCServerMaxConnectionAgeGrace, "An additive period after max-connection-age after which the connection will be forcibly closed. Default: infinity")
+	f.DurationVar(&cfg.GRPCServerTime, "server.grpc.keepalive.time", cfg.GRPCServerTime, "Duration after which a keepalive probe is sent in case of no activity over the connection., Default: 2h")
+	f.DurationVar(&cfg.GRPCServerTimeout, "server.grpc.keepalive.timeout", cfg.GRPCServerTimeout, "After having pinged for keepalive check, the duration after which an idle connection should be closed, Default: 20s")
+	f.StringVar(&cfg.PathPrefix, "server.path-prefix", cfg.PathPrefix, "Base path to serve all API routes from (e.g. /v1/)")
+	f.BoolVar(&cfg.LogSourceIPs, "server.log-source-ips-enabled", cfg.LogSourceIPs, "Optionally log the source IPs.")
+	f.StringVar(&cfg.LogSourceIPsHeader, "server.log-source-ips-header", cfg.LogSourceIPsHeader, "Header field storing the source IPs. Only used if server.log-source-ips-enabled is true. If not set the default Forwarded, X-Real-IP and X-Forwarded-For headers are used")
+	f.StringVar(&cfg.LogSourceIPsRegex, "server.log-source-ips-regex", cfg.LogSourceIPsRegex, "Regex for matching the source IPs. Only used if server.log-source-ips-enabled is true. If not set the default Forwarded, X-Real-IP and X-Forwarded-For headers are used")
+
 	cfg.LogFormat.RegisterFlags(f)
 	cfg.LogLevel.RegisterFlags(f)
-	f.BoolVar(&cfg.LogSourceIPs, "server.log-source-ips-enabled", false, "Optionally log the source IPs.")
-	f.StringVar(&cfg.LogSourceIPsHeader, "server.log-source-ips-header", "", "Header field storing the source IPs. Only used if server.log-source-ips-enabled is true. If not set the default Forwarded, X-Real-IP and X-Forwarded-For headers are used")
-	f.StringVar(&cfg.LogSourceIPsRegex, "server.log-source-ips-regex", "", "Regex for matching the source IPs. Only used if server.log-source-ips-enabled is true. If not set the default Forwarded, X-Real-IP and X-Forwarded-For headers are used")
 }
 
 // Server wraps a HTTP and gRPC server, and some common initialization.

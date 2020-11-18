@@ -13,9 +13,12 @@ type Format struct {
 	Logrus logrus.Formatter
 }
 
+func (f *Format) DefaultValues() {
+	f.Set("logfmt")
+}
+
 // RegisterFlags adds the log format flag to the provided flagset.
 func (f *Format) RegisterFlags(fs *flag.FlagSet) {
-	f.Set("logfmt")
 	fs.Var(f, "log.format", "Output log messages in the given format. Valid formats: [logfmt, json]")
 }
 

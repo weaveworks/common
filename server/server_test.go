@@ -71,6 +71,7 @@ func cancelableSleep(ctx context.Context, sleep time.Duration) error {
 // (except http port because an ordinary user can't bind to default port 80)
 func TestDefaultAddresses(t *testing.T) {
 	var cfg Config
+	cfg.DefaultValues()
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.ExitOnError))
 	cfg.HTTPListenPort = 9090
 	cfg.MetricsNamespace = "testing_addresses"
@@ -105,6 +106,7 @@ func TestDefaultAddresses(t *testing.T) {
 
 func TestErrorInstrumentationMiddleware(t *testing.T) {
 	var cfg Config
+	cfg.DefaultValues()
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.ExitOnError))
 	cfg.HTTPListenPort = 9090 // can't use 80 as ordinary user
 	cfg.GRPCListenAddress = "localhost"
@@ -238,6 +240,7 @@ func TestHTTPInstrumentationMetrics(t *testing.T) {
 	prometheus.DefaultGatherer = reg
 
 	var cfg Config
+	cfg.DefaultValues()
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.ExitOnError))
 	cfg.HTTPListenPort = 9090 // can't use 80 as ordinary user
 	cfg.GRPCListenAddress = "localhost"

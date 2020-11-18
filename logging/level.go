@@ -30,9 +30,12 @@ type Level struct {
 	Gokit  level.Option
 }
 
+func (l *Level) DefaultValues() {
+	l.Set("info")
+}
+
 // RegisterFlags adds the log level flag to the provided flagset.
 func (l *Level) RegisterFlags(f *flag.FlagSet) {
-	l.Set("info")
 	f.Var(l, "log.level", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error]")
 }
 
