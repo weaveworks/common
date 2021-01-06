@@ -39,7 +39,7 @@ func NewServer(handler http.Handler) *Server {
 
 // Handle implements HTTPServer.
 func (s Server) Handle(ctx context.Context, r *httpgrpc.HTTPRequest) (*httpgrpc.HTTPResponse, error) {
-	req, err := http.NewRequest(r.Method, r.Url, ioutil.NopCloser(bytes.NewReader(r.Body)))
+	req, err := http.NewRequest(r.Method, r.Url, bytes.NewBuffer(r.Body))
 	if err != nil {
 		return nil, err
 	}
