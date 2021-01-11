@@ -48,13 +48,12 @@ func nopCloserBuffer(b *bytes.Buffer) io.ReadCloser {
 	return nopCloser{b}
 }
 
-// BodyFromReader attempt to return the body as a bytes buffer to avoid reading and copying one that already exists.
-func BodyFromReader(r io.ReadCloser) (*bytes.Buffer, bool) {
+// BytesBufferFromReader attempt to return cast a reader as a bytes buffer to avoid reading and copying one that already exists.
+func BytesBufferFromReader(r io.ReadCloser) (*bytes.Buffer, bool) {
 	if nop, ok := r.(nopCloser); ok {
 		return nop.Buffer, ok
 	}
 	return nil, false
-
 }
 
 // Handle implements HTTPServer.
