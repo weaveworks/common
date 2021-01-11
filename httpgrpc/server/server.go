@@ -48,7 +48,8 @@ func nopCloserBuffer(b *bytes.Buffer) io.ReadCloser {
 	return nopCloser{b}
 }
 
-// BytesBufferFromReader attempt to return cast a reader as a bytes buffer to avoid reading and copying one that already exists.
+// BytesBufferFromReader attempts to cast a `io.ReadCloser` as a `bytes.Buffer` to avoid reading and copying one that already exists.
+// In case of failure it will return nil and a false boolean.
 func BytesBufferFromReader(r io.ReadCloser) (*bytes.Buffer, bool) {
 	if nop, ok := r.(nopCloser); ok {
 		return nop.Buffer, ok
