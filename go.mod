@@ -25,7 +25,7 @@ require (
 	github.com/sercand/kuberesolver v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
-	github.com/uber/jaeger-client-go v2.22.1+incompatible
+	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
