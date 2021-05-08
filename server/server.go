@@ -31,6 +31,7 @@ import (
 	"github.com/weaveworks/common/signals"
 )
 
+// DefaultNetwork  default network family the http server used ,if not specified, then use tcp
 const (
 	DefaultNetwork = "tcp"
 )
