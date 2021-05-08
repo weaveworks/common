@@ -31,6 +31,10 @@ import (
 	"github.com/weaveworks/common/signals"
 )
 
+const (
+	DefaultNetwork = "tcp"
+)
+
 // SignalHandler used by Server.
 type SignalHandler interface {
 	// Starts the signals handler. This method is blocking, and returns only after signal is received,
@@ -44,6 +48,7 @@ type SignalHandler interface {
 // Config for a Server
 type Config struct {
 	MetricsNamespace  string `yaml:"-"`
+	Network           string `yaml:"network"`
 	HTTPListenAddress string `yaml:"http_listen_address"`
 	HTTPListenPort    int    `yaml:"http_listen_port"`
 	HTTPConnLimit     int    `yaml:"http_listen_conn_limit"`
@@ -158,8 +163,13 @@ func New(cfg Config) (*Server, error) {
 	}, []string{"protocol"})
 	prometheus.MustRegister(tcpConnections)
 
+	// add ipv4 support
+	if cfg.Network == "" {
+		cfg.Network = DefaultNetwork
+	}
+
 	// Setup listeners first, so we can fail early if the port is in use.
-	httpListener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.HTTPListenAddress, cfg.HTTPListenPort))
+	httpListener, err := net.Listen(cfg.Network, fmt.Sprintf("%s:%d", cfg.HTTPListenAddress, cfg.HTTPListenPort))
 	if err != nil {
 		return nil, err
 	}

@@ -67,6 +67,41 @@ func cancelableSleep(ctx context.Context, sleep time.Duration) error {
 	return ctx.Err()
 }
 
+func TestIpv4Addresses(t *testing.T) {
+	var cfg Config
+	cfg.RegisterFlags(flag.NewFlagSet("", flag.ExitOnError))
+	cfg.HTTPListenPort = 9090
+	cfg.MetricsNamespace = "test_only_ipv4_support"
+	cfg.Network = "tcp4"
+
+	server, err := New(cfg)
+	require.NoError(t, err)
+
+	fakeServer := FakeServer{}
+	RegisterFakeServerServer(server.GRPC, fakeServer)
+
+	server.HTTP.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	})
+
+	go server.Run()
+	defer server.Shutdown()
+
+	conn, err := grpc.Dial("localhost:9095", grpc.WithInsecure())
+	defer conn.Close()
+	require.NoError(t, err)
+
+	empty := google_protobuf.Empty{}
+	client := NewFakeServerClient(conn)
+	_, err = client.Succeed(context.Background(), &empty)
+	require.NoError(t, err)
+
+	req, err := http.NewRequest("GET", "http://127.0.0.1:9090/test", nil)
+	require.NoError(t, err)
+	_, err = http.DefaultClient.Do(req)
+	require.NoError(t, err)
+}
+
 // Ensure that http and grpc servers work with no overrides to config
 // (except http port because an ordinary user can't bind to default port 80)
 func TestDefaultAddresses(t *testing.T) {
