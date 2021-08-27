@@ -22,7 +22,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.11.1-0.20210818144104-84fcafffb141
 	github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289
-	github.com/sercand/kuberesolver v2.1.0+incompatible
+	github.com/sercand/kuberesolver v2.4.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
