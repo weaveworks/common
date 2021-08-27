@@ -219,10 +219,11 @@ func New(cfg Config) (*Server, error) {
 
 	// Prometheus histograms for requests.
 	requestDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: cfg.MetricsNamespace,
-		Name:      "request_duration_seconds",
-		Help:      "Time (in seconds) spent serving HTTP requests.",
-		Buckets:   instrument.DefBuckets,
+		Namespace:           cfg.MetricsNamespace,
+		Name:                "request_duration_seconds",
+		Help:                "Time (in seconds) spent serving HTTP requests.",
+		Buckets:             instrument.DefBuckets,
+		SparseBucketsFactor: 1.1,
 	}, []string{"method", "route", "status_code", "ws"})
 	prometheus.MustRegister(requestDuration)
 
