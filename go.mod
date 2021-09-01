@@ -20,7 +20,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.11.1-0.20210818144104-84fcafffb141
+	github.com/prometheus/client_golang v1.11.1-0.20210901114642-dfbcc28fff0f
 	github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289
 	github.com/sercand/kuberesolver v2.4.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
