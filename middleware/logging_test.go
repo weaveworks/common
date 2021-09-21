@@ -26,7 +26,7 @@ func TestBadWriteLogging(t *testing.T) {
 		logContains: []string{"warning", "error: yolo"},
 	}, {
 		err:         nil,
-		logContains: []string{"debug", "GET http://example.com/foo (200)"},
+		logContains: []string{"info", "GET http://example.com/foo (200)"},
 	}} {
 		buf := bytes.NewBuffer(nil)
 		logrusLogger := logrus.New()

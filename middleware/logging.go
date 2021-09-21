@@ -64,7 +64,7 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 			return
 		}
 		if 100 <= statusCode && statusCode < 500 || statusCode == http.StatusBadGateway || statusCode == http.StatusServiceUnavailable {
-			l.logWithRequest(r).Debugf("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
+			l.logWithRequest(r).Infof("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
 			if l.LogRequestHeaders && headers != nil {
 				l.logWithRequest(r).Debugf("ws: %v; %s", IsWSHandshakeRequest(r), string(headers))
 			}
