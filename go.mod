@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.27.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/felixge/httpsnoop v1.0.1
-	github.com/go-kit/kit v0.10.0
+	github.com/go-kit/log v0.1.0
 	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.0
 	github.com/gogo/status v1.0.3
