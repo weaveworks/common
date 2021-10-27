@@ -19,6 +19,7 @@ import (
 	node_https "github.com/prometheus/node_exporter/https"
 	"golang.org/x/net/context"
 	"golang.org/x/net/netutil"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
@@ -94,6 +95,7 @@ type Config struct {
 	LogFormat          logging.Format    `yaml:"log_format"`
 	LogLevel           logging.Level     `yaml:"log_level"`
 	Log                logging.Interface `yaml:"-"`
+	LogErrorRate       int               `yaml:"log_error_rate"`
 	LogSourceIPs       bool              `yaml:"log_source_ips_enabled"`
 	LogSourceIPsHeader string            `yaml:"log_source_ips_header"`
 	LogSourceIPsRegex  string            `yaml:"log_source_ips_regex"`
@@ -214,6 +216,11 @@ func New(cfg Config) (*Server, error) {
 	log := cfg.Log
 	if log == nil {
 		log = logging.NewLogrus(cfg.LogLevel)
+	}
+
+	var highVolumeErrorLog logging.Interface
+	if cfg.LogErrorRate > 0 {
+		highVolumeErrorLog = logging.NewRateLimitedLogger(log, rate.Limit(cfg.LogErrorRate))
 	}
 
 	// Setup TLS
@@ -351,8 +358,9 @@ func New(cfg Config) (*Server, error) {
 			SourceIPs:    sourceIPs,
 		},
 		middleware.Log{
-			Log:       log,
-			SourceIPs: sourceIPs,
+			Log:                log,
+			HighVolumeErrorLog: highVolumeErrorLog,
+			SourceIPs:          sourceIPs,
 		},
 		middleware.Instrument{
 			RouteMatcher:     router,
