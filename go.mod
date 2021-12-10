@@ -42,3 +42,5 @@ require (
 	google.golang.org/grpc v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
