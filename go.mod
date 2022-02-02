@@ -12,9 +12,10 @@ require (
   github.com/gogo/googleapis v1.1.0
   github.com/gogo/protobuf v1.3.0
   github.com/gogo/status v1.0.3
-  github.com/golang/protobuf v1.4.3
+  github.com/golang/protobuf v1.5.2
   github.com/gorilla/mux v1.7.3
   github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
+  github.com/json-iterator/go v1.1.12 // indirect
   github.com/mattn/go-colorable v0.0.9 // indirect
   github.com/mattn/go-isatty v0.0.4 // indirect
   github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
@@ -23,8 +24,10 @@ require (
   github.com/opentracing/opentracing-go v1.1.0
   github.com/pkg/errors v0.9.1
   github.com/pmezard/go-difflib v1.0.0
-  github.com/prometheus/client_golang v1.11.1-0.20210901114642-dfbcc28fff0f
+  github.com/prometheus/client_golang v1.12.2-0.20220202150709-294cca42528b
+  github.com/prometheus/common v0.32.1 // indirect
   github.com/prometheus/exporter-toolkit v0.7.0
+  github.com/prometheus/procfs v0.7.3 // indirect
   github.com/sercand/kuberesolver v2.4.0+incompatible
   github.com/sirupsen/logrus v1.6.0
   github.com/stretchr/testify v1.4.0
@@ -33,6 +36,7 @@ require (
   github.com/weaveworks/promrus v1.2.0
   go.uber.org/atomic v1.5.1 // indirect
   golang.org/x/net v0.0.0-20210525063256-abc453219eb5
+  golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
   golang.org/x/tools v0.0.0-20200825202427-b303f430e36d
   google.golang.org/grpc v1.31.0
   gopkg.in/yaml.v2 v2.4.0
