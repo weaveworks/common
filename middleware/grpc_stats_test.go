@@ -82,31 +82,30 @@ func TestGrpcStats(t *testing.T) {
 	err = testutil.GatherAndCompare(reg, bytes.NewBufferString(`
 			# HELP received_payload_bytes Size of received gRPC messages
 			# TYPE received_payload_bytes histogram
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="1.048576e+06"} 1
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="2.62144e+06"} 1
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="5.24288e+06"} 1
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="1.048576e+07"} 2
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="2.62144e+07"} 2
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="5.24288e+07"} 2
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="1.048576e+08"} 2
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="2.62144e+08"} 2
-			received_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="+Inf"} 2
-			received_payload_bytes_sum{method="gRPC", route="/grpc.health.v1.Health/Check"} 8.388613e+06
-			received_payload_bytes_count{method="gRPC", route="/grpc.health.v1.Health/Check"} 2
-
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="1.048576e+06"} 1
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="2.62144e+06"} 1
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="5.24288e+06"} 1
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="1.048576e+07"} 2
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="2.62144e+07"} 2
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="5.24288e+07"} 2
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="1.048576e+08"} 2
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="2.62144e+08"} 2
+			received_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="+Inf"} 2
+			received_payload_bytes_sum{method="gRPC",route="/grpc.health.v1.Health/Check"} 8.388623e+06
+			received_payload_bytes_count{method="gRPC",route="/grpc.health.v1.Health/Check"} 2
 			# HELP sent_payload_bytes Size of sent gRPC
 			# TYPE sent_payload_bytes histogram
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="1.048576e+06"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="2.62144e+06"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="5.24288e+06"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="1.048576e+07"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="2.62144e+07"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="5.24288e+07"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="1.048576e+08"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="2.62144e+08"} 1
-			sent_payload_bytes_bucket{method="gRPC", route="/grpc.health.v1.Health/Check",le="+Inf"} 1
-			sent_payload_bytes_sum{method="gRPC", route="/grpc.health.v1.Health/Check"} 7
-			sent_payload_bytes_count{method="gRPC", route="/grpc.health.v1.Health/Check"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="1.048576e+06"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="2.62144e+06"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="5.24288e+06"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="1.048576e+07"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="2.62144e+07"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="5.24288e+07"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="1.048576e+08"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="2.62144e+08"} 1
+			sent_payload_bytes_bucket{method="gRPC",route="/grpc.health.v1.Health/Check",le="+Inf"} 1
+			sent_payload_bytes_sum{method="gRPC",route="/grpc.health.v1.Health/Check"} 7
+			sent_payload_bytes_count{method="gRPC",route="/grpc.health.v1.Health/Check"} 1
 	`), "received_payload_bytes", "sent_payload_bytes")
 	require.NoError(t, err)
 
@@ -216,9 +215,8 @@ func TestGrpcStatsStreaming(t *testing.T) {
 			received_payload_bytes_bucket{method="gRPC",route="/middleware.EchoServer/Process",le="1.048576e+08"} 5
 			received_payload_bytes_bucket{method="gRPC",route="/middleware.EchoServer/Process",le="2.62144e+08"} 5
 			received_payload_bytes_bucket{method="gRPC",route="/middleware.EchoServer/Process",le="+Inf"} 5
-			received_payload_bytes_sum{method="gRPC",route="/middleware.EchoServer/Process"} 1.5728664e+07
+			received_payload_bytes_sum{method="gRPC",route="/middleware.EchoServer/Process"} 1.5728689e+07
 			received_payload_bytes_count{method="gRPC",route="/middleware.EchoServer/Process"} 5
-
 			# HELP sent_payload_bytes Size of sent gRPC
 			# TYPE sent_payload_bytes histogram
 			sent_payload_bytes_bucket{method="gRPC",route="/middleware.EchoServer/Process",le="1.048576e+06"} 1
