@@ -17,7 +17,7 @@ import (
 	"github.com/sercand/kuberesolver"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/balancer/roundrobin"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/weaveworks/common/httpgrpc"
 	"github.com/weaveworks/common/logging"
@@ -133,9 +133,11 @@ func NewClient(address string) (*Client, error) {
 		return nil, err
 	}
 
+	const grpcServiceConfig = `{"loadBalancingPolicy":"round_robin"}`
+
 	dialOptions := []grpc.DialOption{
-		grpc.WithBalancerName(roundrobin.Name),
-		grpc.WithInsecure(),
+		grpc.WithDefaultServiceConfig(grpcServiceConfig),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
 			otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer()),
 			middleware.ClientUserHeaderInterceptor,

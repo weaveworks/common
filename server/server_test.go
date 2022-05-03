@@ -14,20 +14,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus/testutil"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/status"
-
 	google_protobuf "github.com/golang/protobuf/ptypes/empty"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/prometheus/exporter-toolkit/web"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
+
 	"github.com/weaveworks/common/httpgrpc"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/middleware"
-	"golang.org/x/net/context"
 )
 
 type FakeServer struct{}
@@ -129,7 +130,7 @@ func TestDefaultAddresses(t *testing.T) {
 	go server.Run()
 	defer server.Shutdown()
 
-	conn, err := grpc.Dial("localhost:9095", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:9095", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer conn.Close()
 	require.NoError(t, err)
 
@@ -170,7 +171,7 @@ func TestErrorInstrumentationMiddleware(t *testing.T) {
 
 	go server.Run()
 
-	conn, err := grpc.Dial("localhost:1234", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:1234", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer conn.Close()
 	require.NoError(t, err)
 
