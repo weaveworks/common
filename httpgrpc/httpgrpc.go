@@ -1,6 +1,8 @@
 package httpgrpc
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	spb "github.com/gogo/googleapis/google/rpc"
@@ -8,6 +10,9 @@ import (
 	"github.com/gogo/status"
 	log "github.com/sirupsen/logrus"
 )
+
+// StatusClientClosedRequest is the status code for canceled requests (thus never seen by the client).
+const StatusClientClosedRequest = 499
 
 // Errorf returns a HTTP gRPC error than is correctly forwarded over
 // gRPC, and can eventually be converted back to a HTTP response with
@@ -35,6 +40,13 @@ func ErrorFromHTTPResponse(resp *HTTPResponse) error {
 
 // HTTPResponseFromError converts a grpc error into an HTTP response
 func HTTPResponseFromError(err error) (*HTTPResponse, bool) {
+	if errors.Is(err, context.Canceled) {
+		return &HTTPResponse{
+			Code: 499,
+			Body: []byte(err.Error()),
+		}, true
+	}
+
 	s, ok := status.FromError(err)
 	if !ok {
 		return nil, false
