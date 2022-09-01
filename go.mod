@@ -37,3 +37,6 @@ require (
 	google.golang.org/grpc v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+// Export types used in TLS config.  Remove when https://github.com/prometheus/exporter-toolkit/pull/110 is merged.
+replace github.com/prometheus/exporter-toolkit v0.7.0 => github.com/bboreham/exporter-toolkit v0.0.0-20220901124938-52ad245e00a1
