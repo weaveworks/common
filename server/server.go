@@ -276,10 +276,12 @@ func New(cfg Config) (*Server, error) {
 	if len(cfg.GRPCTLSConfig.TLSCertPath) > 0 && len(cfg.GRPCTLSConfig.TLSKeyPath) > 0 {
 		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
 		grpcTLSConfig, err = web.ConfigToTLSConfig(&web.TLSStruct{
-			TLSCertPath: cfg.GRPCTLSConfig.TLSCertPath,
-			TLSKeyPath:  cfg.GRPCTLSConfig.TLSKeyPath,
-			ClientAuth:  cfg.GRPCTLSConfig.ClientAuth,
-			ClientCAs:   cfg.GRPCTLSConfig.ClientCAs,
+			TLSCertPath:  cfg.GRPCTLSConfig.TLSCertPath,
+			TLSKeyPath:   cfg.GRPCTLSConfig.TLSKeyPath,
+			ClientAuth:   cfg.GRPCTLSConfig.ClientAuth,
+			ClientCAs:    cfg.GRPCTLSConfig.ClientCAs,
+			CipherSuites: cipherSuites,
+			MinVersion:   minVersion,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("error generating grpc tls config: %v", err)
