@@ -4,7 +4,7 @@ version: 2
 defaults: &defaults
   docker:
     - image: cimg/go:1.17.13
-  working_directory: /go/src/github.com/weaveworks/common
+  working_directory: /home/circleci/go/src/github.com/weaveworks/common
 
 workflows:
   version: 2
