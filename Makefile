@@ -10,13 +10,13 @@ SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
 RM := --rm
 GO_FLAGS := -ldflags "-extldflags \"-static\" -linkmode=external -s -w" -tags netgo -i
 
+# A 3-year-old image which is a reasonable match for the last time the files were generated.
+PROTOC_IMAGE=namely/protoc:1.22_1
+
 protos:
-	@mkdir -p $(shell pwd)/.pkg
-	$(SUDO) docker run $(RM) -ti \
-		-v $(shell pwd)/.pkg:/go/pkg \
-		-v $(shell pwd):/go/src/github.com/weaveworks/common \
-		-e SRC_PATH=/go/src/github.com/weaveworks/common \
-		$(BUILD_IMAGE) make $@
+	docker run $(RM) --user $(id -u):$(id -g) -v $(shell pwd):/go/src/github.com/weaveworks/common -w /go/src/github.com/weaveworks/common namely/protoc:1.22_1 --proto_path=/go/src/github.com/weaveworks/common --go_out=plugins=grpc:/go/src/ server/fake_server.proto
+	docker run $(RM) --user $(id -u):$(id -g) -v $(shell pwd):/go/src/github.com/weaveworks/common -w /go/src/github.com/weaveworks/common namely/protoc:1.22_1 --proto_path=/go/src/github.com/weaveworks/common --go_out=plugins=grpc:/go/src/ middleware/middleware_test/echo_server.proto
+	docker run $(RM) --user $(id -u):$(id -g) -v $(shell pwd):/go/src/github.com/weaveworks/common -w /go/src/github.com/weaveworks/common namely/protoc:1.22_1 --proto_path=/go/src/github.com/weaveworks/common --gogofast_out=plugins=grpc:/go/src/ httpgrpc/httpgrpc.proto
 
 protos: $(GENERATED_PROTOS)
 
