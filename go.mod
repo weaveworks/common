@@ -8,11 +8,11 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/felixge/httpsnoop v1.0.1
-	github.com/go-kit/log v0.1.0
+	github.com/go-kit/log v0.2.1
 	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.0
 	github.com/gogo/status v1.0.3
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.7.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/mattn/go-colorable v0.0.9 // indirect
@@ -23,8 +23,8 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.11.0
-	github.com/prometheus/exporter-toolkit v0.7.0
+	github.com/prometheus/client_golang v1.12.1
+	github.com/prometheus/exporter-toolkit v0.7.2-0.20220901134540-2434b08435da
 	github.com/sercand/kuberesolver v2.4.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
@@ -32,11 +32,8 @@ require (
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	go.uber.org/atomic v1.5.1 // indirect
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/tools v0.0.0-20200825202427-b303f430e36d
 	google.golang.org/grpc v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 )
-
-// Export types used in TLS config.  Remove when https://github.com/prometheus/exporter-toolkit/pull/110 is merged.
-replace github.com/prometheus/exporter-toolkit v0.7.0 => github.com/bboreham/exporter-toolkit v0.0.0-20220901124938-52ad245e00a1
