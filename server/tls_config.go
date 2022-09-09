@@ -29,7 +29,7 @@ func stringToCipherSuites(s string) ([]web.Cipher, error) {
 	for _, cipher := range strings.Split(s, ",") {
 		intValue, ok := possibleCiphers[cipher]
 		if !ok {
-			return nil, fmt.Errorf("Cipher suite %q not recognized", cipher)
+			return nil, fmt.Errorf("cipher suite %q not recognized", cipher)
 		}
 		ciphersSlice = append(ciphersSlice, intValue)
 	}
