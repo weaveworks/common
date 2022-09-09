@@ -21,7 +21,7 @@ jobs:
     - run:
         name: Lint
         command: |
-          make BUILD_IN_CONTAINER=false lint
+          make lint
 
   test:
     <<: *defaults
@@ -30,4 +30,4 @@ jobs:
     - run:
         name: Test
         command: |
-          make BUILD_IN_CONTAINER=false test
+          make test
