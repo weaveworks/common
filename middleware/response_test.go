@@ -55,7 +55,7 @@ func (rw *nonFlushingResponseWriter) Write(_ []byte) (int, error) {
 func (rw *nonFlushingResponseWriter) WriteHeader(_ int) {
 }
 
-func TestNonFlushingBadResponseLoggingWriter(t *testing.T) {
+func TestBadResponseLoggingWriter_WithAndWithoutFlusher(t *testing.T) {
 	var buf bytes.Buffer
 
 	nf := newBadResponseLoggingWriter(&nonFlushingResponseWriter{}, &buf)
