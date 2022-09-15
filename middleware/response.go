@@ -36,9 +36,6 @@ type flushingBadResponseLoggingWriter struct {
 	f http.Flusher
 }
 
-// newBadResponseLoggingWriter makes a new badResponseLoggingWriter or
-// flushingBadResponseLoggingWriter depending on if the incoming
-// http.ResponseWriter implements http.Flusher.
 func newBadResponseLoggingWriter(rw http.ResponseWriter, buffer io.Writer) badResponseLoggingWriter {
 	b := nonFlushingBadResponseLoggingWriter{
 		rw:            rw,
@@ -104,10 +101,6 @@ func (b *nonFlushingBadResponseLoggingWriter) getWriteError() error {
 	return b.writeError
 }
 
-func (b *flushingBadResponseLoggingWriter) Flush() {
-	b.f.Flush()
-}
-
 func (b *nonFlushingBadResponseLoggingWriter) captureResponseBody(data []byte) {
 	if len(data) > b.bodyBytesLeft {
 		b.buffer.Write(data[:b.bodyBytesLeft])
@@ -118,4 +111,8 @@ func (b *nonFlushingBadResponseLoggingWriter) captureResponseBody(data []byte) {
 		b.buffer.Write(data)
 		b.bodyBytesLeft -= len(data)
 	}
+}
+
+func (b *flushingBadResponseLoggingWriter) Flush() {
+	b.f.Flush()
 }
