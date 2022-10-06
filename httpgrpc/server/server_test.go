@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -35,7 +36,7 @@ func newTestServer(handler http.Handler) (*testServer, error) {
 
 	server := &testServer{
 		Server:     NewServer(handler),
-		grpcServer: grpc.NewServer(),
+		grpcServer: grpc.NewServer(grpc.StatsHandler(NewStatsHandler(nil))),
 		URL:        "direct://" + lis.Addr().String(),
 	}
 
@@ -141,4 +142,68 @@ func TestTracePropagation(t *testing.T) {
 
 	assert.Equal(t, "world", string(recorder.Body.Bytes()))
 	assert.Equal(t, 200, recorder.Code)
+}
+
+func BenchmarkServer_ServeHTTP(b *testing.B) {
+	bcs := []struct {
+		name         string
+		responseSize int
+	}{
+		{
+			name:         "1k response size",
+			responseSize: 1024,
+		},
+		{
+			name:         "10k response size",
+			responseSize: 10 * 1024,
+		},
+		{
+			name:         "100k response size",
+			responseSize: 100 * 1024,
+		},
+		{
+			name:         "256k response size",
+			responseSize: 256 * 1024,
+		},
+		{
+			name:         "512k response size",
+			responseSize: 512 * 1024,
+		},
+		{
+			name:         "1M response size",
+			responseSize: 1024 * 1024,
+		},
+		{
+			name:         "10M response size",
+			responseSize: 10 * 1024 * 1024,
+		},
+	}
+	for _, bc := range bcs {
+		b.Run(bc.name, func(b *testing.B) {
+			content := make([]byte, bc.responseSize)
+			for i := 0; i < len(content); i++ {
+				content[i] = 'a'
+			}
+
+			server, err := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.Copy(w, bytes.NewReader(content))
+			}))
+			require.NoError(b, err)
+			defer server.grpcServer.GracefulStop()
+
+			client, err := NewClient(server.URL)
+			require.NoError(b, err)
+
+			req, err := http.NewRequest("GET", "/hello", &bytes.Buffer{})
+			require.NoError(b, err)
+
+			req = req.WithContext(user.InjectOrgID(context.Background(), "1"))
+			recorder := httptest.NewRecorder()
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				client.ServeHTTP(recorder, req)
+			}
+		})
+	}
 }

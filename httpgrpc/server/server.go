@@ -23,6 +23,12 @@ import (
 	"github.com/weaveworks/common/middleware"
 )
 
+var respBufferPool = sync.Pool{
+	New: func() interface{} {
+		return bytes.NewBuffer(nil)
+	},
+}
+
 // Server implements HTTPServer.  HTTPServer is a generated interface that gRPC
 // servers must implement.
 type Server struct {
@@ -56,7 +62,13 @@ func (s Server) Handle(ctx context.Context, r *httpgrpc.HTTPRequest) (*httpgrpc.
 	req.RequestURI = r.Url
 	req.ContentLength = int64(len(r.Body))
 
-	recorder := httptest.NewRecorder()
+	buff := respBufferPool.Get().(*bytes.Buffer)
+
+	recorder := &httptest.ResponseRecorder{
+		HeaderMap: make(http.Header),
+		Body:      buff,
+		Code:      200,
+	}
 	s.handler.ServeHTTP(recorder, req)
 	resp := &httpgrpc.HTTPResponse{
 		Code:    int32(recorder.Code),

@@ -367,8 +367,13 @@ func New(cfg Config) (*Server, error) {
 		grpc.MaxRecvMsgSize(cfg.GPRCServerMaxRecvMsgSize),
 		grpc.MaxSendMsgSize(cfg.GRPCServerMaxSendMsgSize),
 		grpc.MaxConcurrentStreams(uint32(cfg.GPRCServerMaxConcurrentStreams)),
-		grpc.StatsHandler(middleware.NewStatsHandler(receivedMessageSize, sentMessageSize, inflightRequests)),
 	}
+
+	// Set server stats handler.
+	grpcOptions = append(grpcOptions, grpc.StatsHandler(httpgrpc_server.NewStatsHandler(
+		middleware.NewStatsHandler(receivedMessageSize, sentMessageSize, inflightRequests),
+	)))
+
 	grpcOptions = append(grpcOptions, cfg.GRPCOptions...)
 	if grpcTLSConfig != nil {
 		grpcCreds := credentials.NewTLS(grpcTLSConfig)
