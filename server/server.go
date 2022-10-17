@@ -97,6 +97,7 @@ type Config struct {
 	GRPCServerMaxConnectionIdle        time.Duration `yaml:"grpc_server_max_connection_idle"`
 	GRPCServerMaxConnectionAge         time.Duration `yaml:"grpc_server_max_connection_age"`
 	GRPCServerMaxConnectionAgeGrace    time.Duration `yaml:"grpc_server_max_connection_age_grace"`
+	GRPCServerConnectionTimeout        time.Duration `yaml:"grpc_server_connection_timeout"`
 	GRPCServerTime                     time.Duration `yaml:"grpc_server_keepalive_time"`
 	GRPCServerTimeout                  time.Duration `yaml:"grpc_server_keepalive_timeout"`
 	GRPCServerMinTimeBetweenPings      time.Duration `yaml:"grpc_server_min_time_between_pings"`
@@ -154,6 +155,7 @@ func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 	f.DurationVar(&cfg.GRPCServerMaxConnectionAge, "server.grpc.keepalive.max-connection-age", infinty, "The duration for the maximum amount of time a connection may exist before it will be closed. Default: infinity")
 	f.DurationVar(&cfg.GRPCServerMaxConnectionAgeGrace, "server.grpc.keepalive.max-connection-age-grace", infinty, "An additive period after max-connection-age after which the connection will be forcibly closed. Default: infinity")
 	f.DurationVar(&cfg.GRPCServerTime, "server.grpc.keepalive.time", time.Hour*2, "Duration after which a keepalive probe is sent in case of no activity over the connection., Default: 2h")
+	f.DurationVar(&cfg.GRPCServerConnectionTimeout, "server.grpc.connection.timeout", time.Minute*2, "sets the timeout for connection establishment (up to and including HTTP/2 handshaking) for all new connections.  If this is not set, the default is 120 seconds.  A zero or negative value will result in an immediate timeout.")
 	f.DurationVar(&cfg.GRPCServerTimeout, "server.grpc.keepalive.timeout", time.Second*20, "After having pinged for keepalive check, the duration after which an idle connection should be closed, Default: 20s")
 	f.DurationVar(&cfg.GRPCServerMinTimeBetweenPings, "server.grpc.keepalive.min-time-between-pings", 5*time.Minute, "Minimum amount of time a client should wait before sending a keepalive ping. If client sends keepalive ping more often, server will send GOAWAY and close the connection.")
 	f.BoolVar(&cfg.GRPCServerPingWithoutStreamAllowed, "server.grpc.keepalive.ping-without-stream-allowed", false, "If true, server allows keepalive pings even when there are no active streams(RPCs). If false, and client sends ping when there are no active streams, server will send GOAWAY and close the connection.")
@@ -362,6 +364,7 @@ func New(cfg Config) (*Server, error) {
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			grpcStreamMiddleware...,
 		)),
+		grpc.ConnectionTimeout(cfg.GRPCServerConnectionTimeout),
 		grpc.KeepaliveParams(grpcKeepAliveOptions),
 		grpc.KeepaliveEnforcementPolicy(grpcKeepAliveEnforcementPolicy),
 		grpc.MaxRecvMsgSize(cfg.GPRCServerMaxRecvMsgSize),
