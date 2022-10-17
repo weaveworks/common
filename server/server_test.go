@@ -538,6 +538,7 @@ func TestTLSServer(t *testing.T) {
 		GRPCListenAddress: "localhost",
 		GRPCListenPort:    9194,
 	}
+	cfg.GRPCServerConnectionTimeout = time.Second
 	server, err := New(cfg)
 	require.NoError(t, err)
 
