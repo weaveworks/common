@@ -20,6 +20,9 @@ protos:
 
 protos: $(GENERATED_PROTOS)
 
+check-protos: protos
+	git diff --exit-code || (echo "Please rebuild protobuf code by running 'make protos'" && false)
+
 lint:
 	golangci-lint run --new-from-rev d2f56921e6b0
 
