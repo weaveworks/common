@@ -11,6 +11,7 @@ workflows:
   test-build-deploy:
     jobs:
     - lint
+    - check-protos
     - test
 
 jobs:
@@ -22,6 +23,19 @@ jobs:
         name: Lint
         command: |
           make lint
+
+  check-protos:
+    machine: # executor type
+      image: ubuntu-2204:2022.10.2
+    working_directory: /home/circleci/go/src/github.com/weaveworks/common
+    steps:
+    - checkout
+    - run:
+        name: Check generated protobuf files
+        command: |
+          go version
+          go mod vendor
+          make check-protos
 
   test:
     <<: *defaults
