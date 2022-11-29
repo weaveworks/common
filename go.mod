@@ -8,8 +8,7 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/felixge/httpsnoop v1.0.1
-	github.com/go-kit/kit v0.9.0
-	github.com/go-kit/log v0.2.0
+	github.com/go-kit/log v0.2.1
 	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.0
 	github.com/gogo/status v1.0.3
@@ -25,7 +24,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.12.3-0.20220720112640-ec86ef1833ba
-	github.com/prometheus/exporter-toolkit v0.7.0
+	github.com/prometheus/exporter-toolkit v0.7.2-0.20220901134540-2434b08435da
 	github.com/sercand/kuberesolver v2.4.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
