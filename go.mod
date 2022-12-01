@@ -23,17 +23,17 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.12.1
-	github.com/prometheus/exporter-toolkit v0.7.2-0.20220901134540-2434b08435da
+	github.com/prometheus/client_golang v1.13.0
+	github.com/prometheus/exporter-toolkit v0.8.2
 	github.com/sercand/kuberesolver v2.4.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.8.0
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	go.uber.org/atomic v1.5.1 // indirect
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	golang.org/x/tools v0.0.0-20200825202427-b303f430e36d
-	google.golang.org/grpc v1.31.0
+	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
+	golang.org/x/tools v0.1.5
+	google.golang.org/grpc v1.47.0
 	gopkg.in/yaml.v2 v2.4.0
 )
