@@ -1,73 +1,33 @@
-.PHONY: all test clean images
+.PHONY: all test clean
 .DEFAULT_GOAL := all
 
-# Boiler plate for bulding Docker containers.
-# All this must go at top of file I'm afraid.
-IMAGE_PREFIX := weaveworks
-IMAGE_TAG := $(shell ./tools/image-tag)
-UPTODATE := .uptodate
-BUILD_IMAGE=weaveworks/build-golang:1.14.4-stretch
-
-# Building Docker images is now automated. The convention is every directory
-# with a Dockerfile in it builds an image called weaveworks/<dirname>.
-# Dependencies (i.e. things that go in the image) still need to be explicitly
-# declared.
-%/$(UPTODATE): %/Dockerfile
-	$(SUDO) docker build -t $(IMAGE_PREFIX)/$(shell basename $(@D)) $(@D)/
-	$(SUDO) docker tag $(IMAGE_PREFIX)/$(shell basename $(@D)) $(IMAGE_PREFIX)/$(shell basename $(@D)):$(IMAGE_TAG)
-	touch $@
-
-# Get a list of directories containing Dockerfiles
-DOCKERFILES := $(shell find . -type f -name Dockerfile ! -path "./tools/*" ! -path "./vendor/*")
-UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
-DOCKER_IMAGE_DIRS=$(patsubst %/Dockerfile,%,$(DOCKERFILES))
-
-all: $(UPTODATE_FILES)
+all:
 
 GENERATED_PROTOS=server/fake_server.pb.go httpgrpc/httpgrpc.pb.go middleware/middleware_test/echo_server.pb.go
 
 # All the boiler plate for building golang follows:
 SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
-BUILD_IN_CONTAINER := true
 RM := --rm
 GO_FLAGS := -ldflags "-extldflags \"-static\" -linkmode=external -s -w" -tags netgo -i
-NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
-	rm $@; \
-	echo "\nYour go standard library was built without the 'netgo' build tag."; \
-	echo "To fix that, run"; \
-	echo "    sudo go clean -i net"; \
-	echo "    sudo go install -tags netgo std"; \
-	false; \
-}
 
-ifeq ($(BUILD_IN_CONTAINER),true)
+# A 3-year-old image which is a reasonable match for the last time the files were generated.
+PROTOC_IMAGE=namely/protoc:1.23_0
 
-lint test shell protos:
-	@mkdir -p $(shell pwd)/.pkg
-	$(SUDO) docker run $(RM) -ti \
-		-v $(shell pwd)/.pkg:/go/pkg \
-		-v $(shell pwd):/go/src/github.com/weaveworks/common \
-		-e SRC_PATH=/go/src/github.com/weaveworks/common \
-		$(BUILD_IMAGE) $@
-
-else
+protos:
+	docker run $(RM) --user $(id -u):$(id -g) -v $(shell pwd):/go/src/github.com/weaveworks/common -w /go/src/github.com/weaveworks/common $(PROTOC_IMAGE) --proto_path=/go/src/github.com/weaveworks/common --go_out=plugins=grpc:/go/src/ server/fake_server.proto
+	docker run $(RM) --user $(id -u):$(id -g) -v $(shell pwd):/go/src/github.com/weaveworks/common -w /go/src/github.com/weaveworks/common $(PROTOC_IMAGE) --proto_path=/go/src/github.com/weaveworks/common --go_out=plugins=grpc:/go/src/ middleware/middleware_test/echo_server.proto
+	docker run $(RM) --user $(id -u):$(id -g) -v $(shell pwd):/go/src/github.com/weaveworks/common -w /go/src/github.com/weaveworks/common $(PROTOC_IMAGE) -I/go/src/github.com/weaveworks/common -I/go/src/github.com/weaveworks/common/vendor/github.com/gogo/protobuf/ --proto_path=/go/src/github.com/weaveworks/common --gogofast_out=plugins=grpc:/go/src/ httpgrpc/httpgrpc.proto
 
 protos: $(GENERATED_PROTOS)
 
-%.pb.go: %.proto
-	protoc --go_out=plugins=grpc:../../.. $<
+check-protos: protos
+	git diff --exit-code || (echo "Please rebuild protobuf code by running 'make protos'" && false)
 
 lint:
-	./tools/lint -notestpackage -ignorespelling queriers -ignorespelling Queriers .
+	golangci-lint run --new-from-rev d2f56921e6b0
 
 test:
 	go test ./...
 
-shell:
-	bash
-
-endif
-
 clean:
 	go clean ./...
-	rm -rf $(UPTODATE_FILES)

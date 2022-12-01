@@ -3,14 +3,15 @@ version: 2
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: weaveworks/build-golang:1.14.4-stretch
-  working_directory: /go/src/github.com/weaveworks/common
+    - image: cimg/go:1.17.13
+  working_directory: /home/circleci/go/src/github.com/weaveworks/common
 
 workflows:
   version: 2
   test-build-deploy:
     jobs:
     - lint
+    - check-protos
     - test
 
 jobs:
@@ -21,7 +22,20 @@ jobs:
     - run:
         name: Lint
         command: |
-          make BUILD_IN_CONTAINER=false lint
+          make lint
+
+  check-protos:
+    machine: # executor type
+      image: ubuntu-2204:2022.10.2
+    working_directory: /home/circleci/go/src/github.com/weaveworks/common
+    steps:
+    - checkout
+    - run:
+        name: Check generated protobuf files
+        command: |
+          go version
+          go mod vendor
+          make check-protos
 
   test:
     <<: *defaults
@@ -30,4 +44,4 @@ jobs:
     - run:
         name: Test
         command: |
-          make BUILD_IN_CONTAINER=false test
+          make test
