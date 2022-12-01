@@ -10,7 +10,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/go-kit/log v0.2.1
 	github.com/gogo/googleapis v1.1.0
-	github.com/gogo/protobuf v1.3.0
+	github.com/gogo/protobuf v1.3.2
 	github.com/gogo/status v1.0.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.7.3
