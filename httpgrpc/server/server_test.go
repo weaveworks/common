@@ -62,7 +62,7 @@ func TestBasic(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	client.ServeHTTP(recorder, req)
 
-	assert.Equal(t, "world", string(recorder.Body.Bytes()))
+	assert.Equal(t, "world", recorder.Body.String())
 	assert.Equal(t, 200, recorder.Code)
 }
 
@@ -84,7 +84,7 @@ func TestError(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	client.ServeHTTP(recorder, req)
 
-	assert.Equal(t, "foo\n", string(recorder.Body.Bytes()))
+	assert.Equal(t, "foo\n", recorder.Body.String())
 	assert.Equal(t, 500, recorder.Code)
 }
 
@@ -139,6 +139,6 @@ func TestTracePropagation(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	client.ServeHTTP(recorder, req)
 
-	assert.Equal(t, "world", string(recorder.Body.Bytes()))
+	assert.Equal(t, "world", recorder.Body.String())
 	assert.Equal(t, 200, recorder.Code)
 }
