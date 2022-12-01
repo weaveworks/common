@@ -113,8 +113,8 @@ func TestParseURL(t *testing.T) {
 func TestTracePropagation(t *testing.T) {
 	jaeger := jaegercfg.Configuration{}
 	closer, err := jaeger.InitGlobalTracer("test")
-	defer closer.Close()
 	require.NoError(t, err)
+	defer closer.Close()
 
 	server, err := newTestServer(middleware.Tracer{}.Wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
