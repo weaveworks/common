@@ -260,7 +260,7 @@ func New(cfg Config) (*Server, error) {
 	var httpTLSConfig *tls.Config
 	if len(cfg.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.HTTPTLSConfig.TLSKeyPath) > 0 {
 		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
-		httpTLSConfig, err = web.ConfigToTLSConfig(&web.TLSStruct{
+		httpTLSConfig, err = web.ConfigToTLSConfig(&web.TLSConfig{
 			TLSCertPath:  cfg.HTTPTLSConfig.TLSCertPath,
 			TLSKeyPath:   cfg.HTTPTLSConfig.TLSKeyPath,
 			ClientAuth:   cfg.HTTPTLSConfig.ClientAuth,
@@ -275,7 +275,7 @@ func New(cfg Config) (*Server, error) {
 	var grpcTLSConfig *tls.Config
 	if len(cfg.GRPCTLSConfig.TLSCertPath) > 0 && len(cfg.GRPCTLSConfig.TLSKeyPath) > 0 {
 		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
-		grpcTLSConfig, err = web.ConfigToTLSConfig(&web.TLSStruct{
+		grpcTLSConfig, err = web.ConfigToTLSConfig(&web.TLSConfig{
 			TLSCertPath:  cfg.GRPCTLSConfig.TLSCertPath,
 			TLSKeyPath:   cfg.GRPCTLSConfig.TLSKeyPath,
 			ClientAuth:   cfg.GRPCTLSConfig.ClientAuth,
@@ -290,13 +290,13 @@ func New(cfg Config) (*Server, error) {
 
 	// Prometheus histograms for requests.
 	requestDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:                     cfg.MetricsNamespace,
-		Name:                          "request_duration_seconds",
-		Help:                          "Time (in seconds) spent serving HTTP requests.",
-		Buckets:                       instrument.DefBuckets,
-		SparseBucketsFactor:           1.1,
-		SparseBucketsMaxNumber:        100,
-		SparseBucketsMinResetDuration: time.Hour,
+		Namespace:                       cfg.MetricsNamespace,
+		Name:                            "request_duration_seconds",
+		Help:                            "Time (in seconds) spent serving HTTP requests.",
+		Buckets:                         instrument.DefBuckets,
+		NativeHistogramBucketFactor:     1.1,
+		NativeHistogramMaxBucketNumber:  100,
+		NativeHistogramMinResetDuration: time.Hour,
 	}, []string{"method", "route", "status_code", "ws"})
 	reg.MustRegister(requestDuration)
 
