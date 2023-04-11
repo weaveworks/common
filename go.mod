@@ -24,15 +24,15 @@ require (
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/prometheus/exporter-toolkit v0.8.2
-	github.com/sercand/kuberesolver v2.4.0+incompatible
+	github.com/sercand/kuberesolver/v4 v4.0.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	go.uber.org/atomic v1.5.1 // indirect
-	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
-	golang.org/x/tools v0.1.5
-	google.golang.org/grpc v1.47.0
+	golang.org/x/net v0.5.0
+	golang.org/x/tools v0.3.0
+	google.golang.org/grpc v1.53.0
 	gopkg.in/yaml.v2 v2.4.0
 )
