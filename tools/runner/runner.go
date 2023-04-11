@@ -107,7 +107,7 @@ func (t test) run(hosts []string) bool {
 		err = fmt.Errorf("timed out")
 	}
 
-	duration := float64(time.Now().Sub(start)) / float64(time.Second)
+	duration := float64(time.Since(start)) / float64(time.Second)
 
 	consoleLock.Lock()
 	if err != nil {
