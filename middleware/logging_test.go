@@ -129,7 +129,7 @@ func TestLoggingRequestWithExcludedHeaders(t *testing.T) {
 			logrusLogger.Out = buf
 			logrusLogger.Level = logrus.DebugLevel
 
-			loggingMiddleware := NewLogMiddleware(logging.Logrus(logrusLogger), true, false, nil, tc.excludeHeaderList)
+			loggingMiddleware := NewLogMiddleware(logging.Logrus(logrusLogger), true, false, nil, tc.excludeHeaderList, false)
 
 			handler := func(w http.ResponseWriter, r *http.Request) {
 				_, _ = io.WriteString(w, "<html><body>Hello world!</body></html>")
