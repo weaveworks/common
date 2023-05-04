@@ -83,7 +83,7 @@ type Config struct {
 
 	RegisterInstrumentation  bool `yaml:"register_instrumentation"`
 	ExcludeRequestInLog      bool `yaml:"-"`
-	DisableRequestSuccessLog bool `yaml:"-"`
+	DisableRequestSuccessLog bool `yaml:"disable_request_success_log"`
 
 	ServerGracefulShutdownTimeout time.Duration `yaml:"graceful_shutdown_timeout"`
 	HTTPServerReadTimeout         time.Duration `yaml:"http_server_read_timeout"`
@@ -412,7 +412,7 @@ func New(cfg Config) (*Server, error) {
 			RouteMatcher: router,
 			SourceIPs:    sourceIPs,
 		},
-		middleware.NewLogMiddleware(log, cfg.LogRequestHeaders, cfg.LogRequestAtInfoLevel, sourceIPs, strings.Split(cfg.LogRequestExcludeHeadersList, ",")),
+		middleware.NewLogMiddleware(log, cfg.LogRequestHeaders, cfg.LogRequestAtInfoLevel, sourceIPs, strings.Split(cfg.LogRequestExcludeHeadersList, ","), cfg.DisableRequestSuccessLog),
 		middleware.Instrument{
 			RouteMatcher:     router,
 			Duration:         requestDuration,

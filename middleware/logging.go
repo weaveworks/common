@@ -14,11 +14,12 @@ import (
 
 // Log middleware logs http requests
 type Log struct {
-	Log                   logging.Interface
-	LogRequestHeaders     bool // LogRequestHeaders true -> dump http headers at debug log level
-	LogRequestAtInfoLevel bool // LogRequestAtInfoLevel true -> log requests at info log level
-	SourceIPs             *SourceIPExtractor
-	HttpHeadersToExclude  map[string]bool
+	Log                      logging.Interface
+	DisableRequestSuccessLog bool
+	LogRequestHeaders        bool // LogRequestHeaders true -> dump http headers at debug log level
+	LogRequestAtInfoLevel    bool // LogRequestAtInfoLevel true -> log requests at info log level
+	SourceIPs                *SourceIPExtractor
+	HttpHeadersToExclude     map[string]bool
 }
 
 var defaultExcludedHeaders = map[string]bool{
@@ -27,7 +28,7 @@ var defaultExcludedHeaders = map[string]bool{
 	"Authorization": true,
 }
 
-func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestAtInfoLevel bool, sourceIPs *SourceIPExtractor, headersList []string) Log {
+func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestAtInfoLevel bool, sourceIPs *SourceIPExtractor, headersList []string, disableSucessLog bool) Log {
 	httpHeadersToExclude := map[string]bool{}
 	for header := range defaultExcludedHeaders {
 		httpHeadersToExclude[header] = true
@@ -37,11 +38,12 @@ func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestA
 	}
 
 	return Log{
-		Log:                   log,
-		LogRequestHeaders:     logRequestHeaders,
-		LogRequestAtInfoLevel: logRequestAtInfoLevel,
-		SourceIPs:             sourceIPs,
-		HttpHeadersToExclude:  httpHeadersToExclude,
+		Log:                      log,
+		LogRequestHeaders:        logRequestHeaders,
+		LogRequestAtInfoLevel:    logRequestAtInfoLevel,
+		SourceIPs:                sourceIPs,
+		HttpHeadersToExclude:     httpHeadersToExclude,
+		DisableRequestSuccessLog: disableSucessLog,
 	}
 }
 
@@ -94,6 +96,11 @@ func (l Log) Wrap(next http.Handler) http.Handler {
 
 			return
 		}
+
+		if statusCode >= 200 && statusCode < 300 && l.DisableRequestSuccessLog {
+			return
+		}
+
 		if 100 <= statusCode && statusCode < 500 || statusCode == http.StatusBadGateway || statusCode == http.StatusServiceUnavailable {
 			if l.LogRequestAtInfoLevel {
 				requestLog.Infof("%s %s (%d) %s", r.Method, uri, statusCode, time.Since(begin))
