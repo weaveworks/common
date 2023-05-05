@@ -83,7 +83,7 @@ type Config struct {
 
 	RegisterInstrumentation  bool `yaml:"register_instrumentation"`
 	ExcludeRequestInLog      bool `yaml:"-"`
-	DisableRequestSuccessLog bool `yaml:"disable_request_success_log"`
+	DisableRequestSuccessLog bool `yaml:"-"`
 
 	ServerGracefulShutdownTimeout time.Duration `yaml:"graceful_shutdown_timeout"`
 	HTTPServerReadTimeout         time.Duration `yaml:"http_server_read_timeout"`
