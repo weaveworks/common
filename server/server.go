@@ -186,7 +186,7 @@ type Server struct {
 	httpListener net.Listener
 
 	// These fields are used to support grpc over the http server
-	//  if RouteHTTPToGRPC these three field are set. they are all set here
+	//  if RouteHTTPToGRPC is set. the fields are kept here
 	//  so they can be initialized in New() and started in Run()
 	grpchttpmux        cmux.CMux
 	grpcOnHTTPListener net.Listener
@@ -552,8 +552,6 @@ func (s *Server) Run() error {
 			default:
 			}
 		}()
-	}
-	if s.GRPCOnHTTPServer != nil {
 		go func() {
 			err := s.GRPCOnHTTPServer.Serve(s.grpcOnHTTPListener)
 			if err == grpc.ErrServerStopped {
