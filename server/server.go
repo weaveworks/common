@@ -407,12 +407,15 @@ func New(cfg Config) (*Server, error) {
 		}
 	}
 
+	defaultLogMiddleware := middleware.NewLogMiddleware(log, cfg.LogRequestHeaders, cfg.LogRequestAtInfoLevel, sourceIPs, strings.Split(cfg.LogRequestExcludeHeadersList, ","))
+	defaultLogMiddleware.DisableRequestSuccessLog = cfg.DisableRequestSuccessLog
+
 	defaultHTTPMiddleware := []middleware.Interface{
 		middleware.Tracer{
 			RouteMatcher: router,
 			SourceIPs:    sourceIPs,
 		},
-		middleware.NewLogMiddleware(log, cfg.LogRequestHeaders, cfg.LogRequestAtInfoLevel, sourceIPs, strings.Split(cfg.LogRequestExcludeHeadersList, ","), cfg.DisableRequestSuccessLog),
+		defaultLogMiddleware,
 		middleware.Instrument{
 			RouteMatcher:     router,
 			Duration:         requestDuration,

@@ -28,7 +28,7 @@ var defaultExcludedHeaders = map[string]bool{
 	"Authorization": true,
 }
 
-func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestAtInfoLevel bool, sourceIPs *SourceIPExtractor, headersList []string, disableSucessLog bool) Log {
+func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestAtInfoLevel bool, sourceIPs *SourceIPExtractor, headersList []string) Log {
 	httpHeadersToExclude := map[string]bool{}
 	for header := range defaultExcludedHeaders {
 		httpHeadersToExclude[header] = true
@@ -38,12 +38,11 @@ func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestA
 	}
 
 	return Log{
-		Log:                      log,
-		LogRequestHeaders:        logRequestHeaders,
-		LogRequestAtInfoLevel:    logRequestAtInfoLevel,
-		SourceIPs:                sourceIPs,
-		HttpHeadersToExclude:     httpHeadersToExclude,
-		DisableRequestSuccessLog: disableSucessLog,
+		Log:                   log,
+		LogRequestHeaders:     logRequestHeaders,
+		LogRequestAtInfoLevel: logRequestAtInfoLevel,
+		SourceIPs:             sourceIPs,
+		HttpHeadersToExclude:  httpHeadersToExclude,
 	}
 }
 
