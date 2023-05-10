@@ -529,43 +529,35 @@ func (s *Server) Run() error {
 
 	go func() {
 		err := s.GRPC.Serve(s.grpcListener)
-		if err == grpc.ErrServerStopped {
-			err = nil
-		}
-
-		select {
-		case errChan <- err:
-		default:
-		}
+		handleGRPCError(err, errChan)
 	}()
 
 	// grpchttpmux will only be set if grpchttpmux RouteHTTPToGRPC is set
 	if s.grpchttpmux != nil {
 		go func() {
 			err := s.grpchttpmux.Serve()
-			if err == grpc.ErrServerStopped {
-				err = nil
-			}
-
-			select {
-			case errChan <- err:
-			default:
-			}
+			handleGRPCError(err, errChan)
 		}()
 		go func() {
 			err := s.GRPCOnHTTPServer.Serve(s.grpcOnHTTPListener)
-			if err == grpc.ErrServerStopped {
-				err = nil
-			}
-
-			select {
-			case errChan <- err:
-			default:
-			}
+			handleGRPCError(err, errChan)
 		}()
 	}
 
 	return <-errChan
+}
+
+// handleGRPCError consolidates GRPC Server error handling by sending
+// any error to errChan except for grpc.ErrServerStopped which is ignored.
+func handleGRPCError(err error, errChan chan error) {
+	if err == grpc.ErrServerStopped {
+		err = nil
+	}
+
+	select {
+	case errChan <- err:
+	default:
+	}
 }
 
 // HTTPListenAddr exposes `net.Addr` that `Server` is listening to for HTTP connections.
