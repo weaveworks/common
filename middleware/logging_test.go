@@ -85,7 +85,7 @@ func TestDisabledSuccessfulRequestsLogging(t *testing.T) {
 		}
 
 		handler := func(w http.ResponseWriter, r *http.Request) {
-			io.WriteString(w, "<html><body>Hello World!</body></html>")
+			io.WriteString(w, "<html><body>Hello World!</body></html>") //nolint:errcheck
 		}
 		loggingHandler := loggingMiddleware.Wrap(http.HandlerFunc(handler))
 
