@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -54,6 +55,51 @@ func TestBadWriteLogging(t *testing.T) {
 		for _, content := range tc.logContains {
 			require.True(t, bytes.Contains(buf.Bytes(), []byte(content)))
 		}
+	}
+}
+
+func TestDisabledSuccessfulRequestsLogging(t *testing.T) {
+	for _, tc := range []struct {
+		err         error
+		disableLog  bool
+		logContains string
+	}{
+		{
+			err:         nil,
+			disableLog:  false,
+			logContains: "GET http://example.com/foo (200)",
+		}, {
+			err:         nil,
+			disableLog:  true,
+			logContains: "",
+		},
+	} {
+		buf := bytes.NewBuffer(nil)
+		logrusLogger := logrus.New()
+		logrusLogger.Out = buf
+		logrusLogger.Level = logrus.DebugLevel
+
+		loggingMiddleware := Log{
+			Log:                      logging.Logrus(logrusLogger),
+			DisableRequestSuccessLog: tc.disableLog,
+		}
+
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			io.WriteString(w, "<html><body>Hello World!</body></html>")
+		}
+		loggingHandler := loggingMiddleware.Wrap(http.HandlerFunc(handler))
+
+		req := httptest.NewRequest("GET", "http://example.com/foo", nil)
+		recorder := httptest.NewRecorder()
+
+		w := errorWriter{
+			err: tc.err,
+			w:   recorder,
+		}
+		loggingHandler.ServeHTTP(w, req)
+		content := string(buf.Bytes())
+
+		require.True(t, strings.Contains(content, tc.logContains))
 	}
 }
 
