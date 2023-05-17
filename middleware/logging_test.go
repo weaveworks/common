@@ -97,7 +97,7 @@ func TestDisabledSuccessfulRequestsLogging(t *testing.T) {
 			w:   recorder,
 		}
 		loggingHandler.ServeHTTP(w, req)
-		content := string(buf.Bytes())
+		content := buf.String()
 
 		require.True(t, strings.Contains(content, tc.logContains))
 	}
