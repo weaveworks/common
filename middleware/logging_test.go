@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -65,9 +64,8 @@ func TestDisabledSuccessfulRequestsLogging(t *testing.T) {
 		logContains string
 	}{
 		{
-			err:         nil,
-			disableLog:  false,
-			logContains: "GET http://example.com/foo (200)",
+			err:        nil,
+			disableLog: false,
 		}, {
 			err:         nil,
 			disableLog:  true,
@@ -99,7 +97,12 @@ func TestDisabledSuccessfulRequestsLogging(t *testing.T) {
 		loggingHandler.ServeHTTP(w, req)
 		content := buf.String()
 
-		require.True(t, strings.Contains(content, tc.logContains))
+		if !tc.disableLog {
+			require.Contains(t, content, "GET http://example.com/foo (200)")
+		} else {
+			require.NotContains(t, content, "(200)")
+			require.Empty(t, content)
+		}
 	}
 }
 
