@@ -204,6 +204,13 @@ type Server struct {
 
 // New makes a new Server
 func New(cfg Config) (*Server, error) {
+	if cfg.GRPCListenPort == -1 && cfg.HTTPListenPort == -1 {
+		return nil, fmt.Errorf("both gRPC and HTTP ports are disabled, at least one must be enabled")
+	}
+	if cfg.RouteHTTPToGRPC && (cfg.HTTPListenPort == -1 || cfg.GRPCListenPort == -1) {
+		return nil, fmt.Errorf("both gRPC and HTTP ports must be enabled to route HTTP to gRPC")
+	}
+
 	// If user doesn't supply a logging implementation, by default instantiate
 	// logrus.
 	log := cfg.Log
@@ -234,87 +241,6 @@ func New(cfg Config) (*Server, error) {
 		Help:      "The max number of TCP connections that can be accepted (0 means no limit).",
 	}, []string{"protocol"})
 	reg.MustRegister(tcpConnectionsLimit)
-
-	network := cfg.HTTPListenNetwork
-	if network == "" {
-		network = DefaultNetwork
-	}
-	// Setup listeners first, so we can fail early if the port is in use.
-	httpListener, err := net.Listen(network, fmt.Sprintf("%s:%d", cfg.HTTPListenAddress, cfg.HTTPListenPort))
-	if err != nil {
-		return nil, err
-	}
-	httpListener = middleware.CountingListener(httpListener, tcpConnections.WithLabelValues("http"))
-
-	tcpConnectionsLimit.WithLabelValues("http").Set(float64(cfg.HTTPConnLimit))
-	if cfg.HTTPConnLimit > 0 {
-		httpListener = netutil.LimitListener(httpListener, cfg.HTTPConnLimit)
-	}
-
-	var grpcOnHTTPListener net.Listener
-	var grpchttpmux cmux.CMux
-	if cfg.RouteHTTPToGRPC {
-		grpchttpmux = cmux.New(httpListener)
-
-		httpListener = grpchttpmux.Match(cmux.HTTP1Fast())
-		grpcOnHTTPListener = grpchttpmux.Match(cmux.HTTP2())
-	}
-
-	network = cfg.GRPCListenNetwork
-	if network == "" {
-		network = DefaultNetwork
-	}
-	grpcListener, err := net.Listen(network, fmt.Sprintf("%s:%d", cfg.GRPCListenAddress, cfg.GRPCListenPort))
-	if err != nil {
-		return nil, err
-	}
-	grpcListener = middleware.CountingListener(grpcListener, tcpConnections.WithLabelValues("grpc"))
-
-	tcpConnectionsLimit.WithLabelValues("grpc").Set(float64(cfg.GRPCConnLimit))
-	if cfg.GRPCConnLimit > 0 {
-		grpcListener = netutil.LimitListener(grpcListener, cfg.GRPCConnLimit)
-	}
-
-	cipherSuites, err := stringToCipherSuites(cfg.CipherSuites)
-	if err != nil {
-		return nil, err
-	}
-	minVersion, err := stringToTLSVersion(cfg.MinVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	// Setup TLS
-	var httpTLSConfig *tls.Config
-	if len(cfg.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.HTTPTLSConfig.TLSKeyPath) > 0 {
-		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
-		httpTLSConfig, err = web.ConfigToTLSConfig(&web.TLSConfig{
-			TLSCertPath:  cfg.HTTPTLSConfig.TLSCertPath,
-			TLSKeyPath:   cfg.HTTPTLSConfig.TLSKeyPath,
-			ClientAuth:   cfg.HTTPTLSConfig.ClientAuth,
-			ClientCAs:    cfg.HTTPTLSConfig.ClientCAs,
-			CipherSuites: cipherSuites,
-			MinVersion:   minVersion,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error generating http tls config: %v", err)
-		}
-	}
-	var grpcTLSConfig *tls.Config
-	if len(cfg.GRPCTLSConfig.TLSCertPath) > 0 && len(cfg.GRPCTLSConfig.TLSKeyPath) > 0 {
-		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
-		grpcTLSConfig, err = web.ConfigToTLSConfig(&web.TLSConfig{
-			TLSCertPath:  cfg.GRPCTLSConfig.TLSCertPath,
-			TLSKeyPath:   cfg.GRPCTLSConfig.TLSKeyPath,
-			ClientAuth:   cfg.GRPCTLSConfig.ClientAuth,
-			ClientCAs:    cfg.GRPCTLSConfig.ClientCAs,
-			CipherSuites: cipherSuites,
-			MinVersion:   minVersion,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error generating grpc tls config: %v", err)
-		}
-	}
 
 	// Prometheus histograms for requests.
 	requestDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -351,58 +277,51 @@ func New(cfg Config) (*Server, error) {
 	}, []string{"method", "route"})
 	reg.MustRegister(inflightRequests)
 
-	log.WithField("http", httpListener.Addr()).WithField("grpc", grpcListener.Addr()).Infof("server listening on addresses")
-
-	// Setup gRPC server
-	serverLog := middleware.GRPCServerLog{
-		Log:                      log,
-		WithRequest:              !cfg.ExcludeRequestInLog,
-		DisableRequestSuccessLog: cfg.DisableRequestSuccessLog,
+	cipherSuites, err := stringToCipherSuites(cfg.CipherSuites)
+	if err != nil {
+		return nil, err
 	}
-	grpcMiddleware := []grpc.UnaryServerInterceptor{
-		serverLog.UnaryServerInterceptor,
-		otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
-		middleware.UnaryServerInstrumentInterceptor(requestDuration),
-	}
-	grpcMiddleware = append(grpcMiddleware, cfg.GRPCMiddleware...)
-
-	grpcStreamMiddleware := []grpc.StreamServerInterceptor{
-		serverLog.StreamServerInterceptor,
-		otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
-		middleware.StreamServerInstrumentInterceptor(requestDuration),
-	}
-	grpcStreamMiddleware = append(grpcStreamMiddleware, cfg.GRPCStreamMiddleware...)
-
-	grpcKeepAliveOptions := keepalive.ServerParameters{
-		MaxConnectionIdle:     cfg.GRPCServerMaxConnectionIdle,
-		MaxConnectionAge:      cfg.GRPCServerMaxConnectionAge,
-		MaxConnectionAgeGrace: cfg.GRPCServerMaxConnectionAgeGrace,
-		Time:                  cfg.GRPCServerTime,
-		Timeout:               cfg.GRPCServerTimeout,
+	minVersion, err := stringToTLSVersion(cfg.MinVersion)
+	if err != nil {
+		return nil, err
 	}
 
-	grpcKeepAliveEnforcementPolicy := keepalive.EnforcementPolicy{
-		MinTime:             cfg.GRPCServerMinTimeBetweenPings,
-		PermitWithoutStream: cfg.GRPCServerPingWithoutStreamAllowed,
+	// HTTP server =============================================================
+	network := cfg.HTTPListenNetwork
+	if network == "" {
+		network = DefaultNetwork
+	}
+	// Setup listeners first, so we can fail early if the port is in use.
+	httpListener, err := net.Listen(network, fmt.Sprintf("%s:%d", cfg.HTTPListenAddress, cfg.HTTPListenPort))
+	if err != nil {
+		return nil, err
+	}
+	httpListener = middleware.CountingListener(httpListener, tcpConnections.WithLabelValues("http"))
+
+	tcpConnectionsLimit.WithLabelValues("http").Set(float64(cfg.HTTPConnLimit))
+	if cfg.HTTPConnLimit > 0 {
+		httpListener = netutil.LimitListener(httpListener, cfg.HTTPConnLimit)
 	}
 
-	grpcOptions := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(grpcMiddleware...),
-		grpc.ChainStreamInterceptor(grpcStreamMiddleware...),
-		grpc.KeepaliveParams(grpcKeepAliveOptions),
-		grpc.KeepaliveEnforcementPolicy(grpcKeepAliveEnforcementPolicy),
-		grpc.MaxRecvMsgSize(cfg.GPRCServerMaxRecvMsgSize),
-		grpc.MaxSendMsgSize(cfg.GRPCServerMaxSendMsgSize),
-		grpc.MaxConcurrentStreams(uint32(cfg.GPRCServerMaxConcurrentStreams)),
-		grpc.StatsHandler(middleware.NewStatsHandler(receivedMessageSize, sentMessageSize, inflightRequests)),
+	var grpcOnHTTPListener net.Listener
+	var grpchttpmux cmux.CMux
+	if cfg.RouteHTTPToGRPC {
+		grpchttpmux = cmux.New(httpListener)
+
+		httpListener = grpchttpmux.Match(cmux.HTTP1Fast())
+		grpcOnHTTPListener = grpchttpmux.Match(cmux.HTTP2())
 	}
-	grpcOptions = append(grpcOptions, cfg.GRPCOptions...)
-	if grpcTLSConfig != nil {
-		grpcCreds := credentials.NewTLS(grpcTLSConfig)
-		grpcOptions = append(grpcOptions, grpc.Creds(grpcCreds))
+
+	network = cfg.GRPCListenNetwork
+	if network == "" {
+		network = DefaultNetwork
 	}
-	grpcServer := grpc.NewServer(grpcOptions...)
-	grpcOnHttpServer := grpc.NewServer(grpcOptions...)
+
+	// Setup TLS if configured.
+	httpTLSConfig, err := getHTTPTLSConfig(cfg, cipherSuites, minVersion)
+	if err != nil {
+		return nil, err
+	}
 
 	// Setup HTTP server
 	var router *mux.Router
@@ -462,6 +381,78 @@ func New(cfg Config) (*Server, error) {
 		httpServer.TLSConfig = httpTLSConfig
 	}
 
+	// gRPC server =============================================================
+	grpcListener, err := net.Listen(network, fmt.Sprintf("%s:%d", cfg.GRPCListenAddress, cfg.GRPCListenPort))
+	if err != nil {
+		return nil, err
+	}
+	grpcListener = middleware.CountingListener(grpcListener, tcpConnections.WithLabelValues("grpc"))
+
+	tcpConnectionsLimit.WithLabelValues("grpc").Set(float64(cfg.GRPCConnLimit))
+	if cfg.GRPCConnLimit > 0 {
+		grpcListener = netutil.LimitListener(grpcListener, cfg.GRPCConnLimit)
+	}
+
+	// Setup TLS if configured.
+	grpcTLSConfig, err := getGRPCTLSConfig(cfg, cipherSuites, minVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	// Setup gRPC server
+	serverLog := middleware.GRPCServerLog{
+		Log:                      log,
+		WithRequest:              !cfg.ExcludeRequestInLog,
+		DisableRequestSuccessLog: cfg.DisableRequestSuccessLog,
+	}
+	grpcMiddleware := []grpc.UnaryServerInterceptor{
+		serverLog.UnaryServerInterceptor,
+		otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
+		middleware.UnaryServerInstrumentInterceptor(requestDuration),
+	}
+	grpcMiddleware = append(grpcMiddleware, cfg.GRPCMiddleware...)
+
+	grpcStreamMiddleware := []grpc.StreamServerInterceptor{
+		serverLog.StreamServerInterceptor,
+		otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
+		middleware.StreamServerInstrumentInterceptor(requestDuration),
+	}
+	grpcStreamMiddleware = append(grpcStreamMiddleware, cfg.GRPCStreamMiddleware...)
+
+	grpcKeepAliveOptions := keepalive.ServerParameters{
+		MaxConnectionIdle:     cfg.GRPCServerMaxConnectionIdle,
+		MaxConnectionAge:      cfg.GRPCServerMaxConnectionAge,
+		MaxConnectionAgeGrace: cfg.GRPCServerMaxConnectionAgeGrace,
+		Time:                  cfg.GRPCServerTime,
+		Timeout:               cfg.GRPCServerTimeout,
+	}
+
+	grpcKeepAliveEnforcementPolicy := keepalive.EnforcementPolicy{
+		MinTime:             cfg.GRPCServerMinTimeBetweenPings,
+		PermitWithoutStream: cfg.GRPCServerPingWithoutStreamAllowed,
+	}
+
+	grpcOptions := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(grpcMiddleware...),
+		grpc.ChainStreamInterceptor(grpcStreamMiddleware...),
+		grpc.KeepaliveParams(grpcKeepAliveOptions),
+		grpc.KeepaliveEnforcementPolicy(grpcKeepAliveEnforcementPolicy),
+		grpc.MaxRecvMsgSize(cfg.GPRCServerMaxRecvMsgSize),
+		grpc.MaxSendMsgSize(cfg.GRPCServerMaxSendMsgSize),
+		grpc.MaxConcurrentStreams(uint32(cfg.GPRCServerMaxConcurrentStreams)),
+		grpc.StatsHandler(middleware.NewStatsHandler(receivedMessageSize, sentMessageSize, inflightRequests)),
+	}
+	grpcOptions = append(grpcOptions, cfg.GRPCOptions...)
+	if grpcTLSConfig != nil {
+		grpcCreds := credentials.NewTLS(grpcTLSConfig)
+		grpcOptions = append(grpcOptions, grpc.Creds(grpcCreds))
+	}
+	grpcServer := grpc.NewServer(grpcOptions...)
+	grpcOnHttpServer := grpc.NewServer(grpcOptions...)
+
+	// TODO: alow disabling
+	log.WithField("http", httpListener.Addr()).WithField("grpc", grpcListener.Addr()).Infof("server listening on addresses")
+
 	handler := cfg.SignalHandler
 	if handler == nil {
 		handler = signals.NewHandler(log)
@@ -483,6 +474,50 @@ func New(cfg Config) (*Server, error) {
 		Registerer:       reg,
 		Gatherer:         gatherer,
 	}, nil
+}
+
+func getHTTPTLSConfig(cfg Config, cipherSuites []web.Cipher, minVersion web.TLSVersion) (*tls.Config, error) {
+	var (
+		tlsConfig *tls.Config
+		err       error
+	)
+	if len(cfg.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.HTTPTLSConfig.TLSKeyPath) > 0 {
+		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
+		tlsConfig, err = web.ConfigToTLSConfig(&web.TLSConfig{
+			TLSCertPath:  cfg.HTTPTLSConfig.TLSCertPath,
+			TLSKeyPath:   cfg.HTTPTLSConfig.TLSKeyPath,
+			ClientAuth:   cfg.HTTPTLSConfig.ClientAuth,
+			ClientCAs:    cfg.HTTPTLSConfig.ClientCAs,
+			CipherSuites: cipherSuites,
+			MinVersion:   minVersion,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error generating http tls config: %v", err)
+		}
+	}
+	return tlsConfig, nil
+}
+
+func getGRPCTLSConfig(cfg Config, cipherSuites []web.Cipher, minVersion web.TLSVersion) (*tls.Config, error) {
+	var (
+		tlsConfig *tls.Config
+		err       error
+	)
+	if len(cfg.GRPCTLSConfig.TLSCertPath) > 0 && len(cfg.GRPCTLSConfig.TLSKeyPath) > 0 {
+		// Note: ConfigToTLSConfig from prometheus/exporter-toolkit is awaiting security review.
+		tlsConfig, err = web.ConfigToTLSConfig(&web.TLSConfig{
+			TLSCertPath:  cfg.GRPCTLSConfig.TLSCertPath,
+			TLSKeyPath:   cfg.GRPCTLSConfig.TLSKeyPath,
+			ClientAuth:   cfg.GRPCTLSConfig.ClientAuth,
+			ClientCAs:    cfg.GRPCTLSConfig.ClientCAs,
+			CipherSuites: cipherSuites,
+			MinVersion:   minVersion,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error generating grpc tls config: %v", err)
+		}
+	}
+	return tlsConfig, nil
 }
 
 // RegisterInstrumentation on the given router.
