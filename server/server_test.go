@@ -144,6 +144,84 @@ func TestDefaultAddresses(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestDisableBothListeners(t *testing.T) {
+	var cfg Config
+	cfg.GRPCListenPort = -1
+	cfg.HTTPListenPort = -1
+	server, err := New(cfg)
+	require.Error(t, err)
+	require.Nil(t, server)
+}
+
+func TestInvalidConfig(t *testing.T) {
+	var cfg Config
+	cfg.GRPCListenPort = 9090
+	cfg.HTTPListenPort = -1
+	// Only allowed when both HTTP and GRPC are enabled.
+	cfg.RouteHTTPToGRPC = true
+	server, err := New(cfg)
+	require.Error(t, err)
+	require.Nil(t, server)
+}
+
+func TestDisabledHTTP(t *testing.T) {
+	var cfg Config
+	cfg.GRPCListenPort = 9095
+	cfg.HTTPListenPort = -1
+	cfg.Registerer = prometheus.NewRegistry()
+
+	server, err := New(cfg)
+	require.NoError(t, err)
+
+	fakeServer := FakeServer{}
+	RegisterFakeServerServer(server.GRPC, fakeServer)
+
+	go func() { require.NoError(t, server.Run()) }()
+	defer server.Shutdown()
+
+	conn, err := grpc.Dial("localhost:9095", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	defer func() { require.NoError(t, conn.Close()) }()
+
+	empty := google_protobuf.Empty{}
+	client := NewFakeServerClient(conn)
+	_, err = client.Succeed(context.Background(), &empty)
+	require.NoError(t, err)
+
+	require.Nil(t, server.HTTPListenAddr())
+	require.Nil(t, server.HTTP)
+	require.Nil(t, server.HTTPServer)
+	require.Nil(t, server.httpListener)
+}
+
+func TestDisabledGRPC(t *testing.T) {
+	var cfg Config
+	cfg.GRPCListenPort = -1
+	cfg.HTTPListenPort = 9090
+	cfg.Registerer = prometheus.NewRegistry()
+
+	server, err := New(cfg)
+	require.NoError(t, err)
+
+	server.HTTP.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	})
+	go func() { require.NoError(t, server.Run()) }()
+	defer server.Shutdown()
+
+	req, err := http.NewRequest("GET", "http://127.0.0.1:9090/test", nil)
+	require.NoError(t, err)
+	_, err = http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	require.Nil(t, server.GRPCListenAddr())
+	require.Nil(t, server.GRPC)
+	require.Nil(t, server.GRPCOnHTTPServer)
+	require.Nil(t, server.grpcListener)
+	require.Nil(t, server.grpchttpmux)
+	require.Nil(t, server.grpcOnHTTPListener)
+}
+
 func TestErrorInstrumentationMiddleware(t *testing.T) {
 	var cfg Config
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.ExitOnError))
@@ -291,8 +369,7 @@ func TestHTTPInstrumentationMetrics(t *testing.T) {
 	var cfg Config
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.ExitOnError))
 	cfg.HTTPListenPort = 9090 // can't use 80 as ordinary user
-	cfg.GRPCListenAddress = "localhost"
-	cfg.GRPCListenPort = 1234
+	cfg.GRPCListenPort = -1
 	server, err := New(cfg)
 	require.NoError(t, err)
 
@@ -434,7 +511,6 @@ func TestHTTPInstrumentationMetrics(t *testing.T) {
 		# HELP tcp_connections Current number of accepted TCP connections.
 		# TYPE tcp_connections gauge
 		tcp_connections{protocol="http"} 0
-		tcp_connections{protocol="grpc"} 0
 	`), "request_message_bytes", "response_message_bytes", "inflight_requests", "tcp_connections"))
 }
 
