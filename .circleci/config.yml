@@ -3,7 +3,7 @@ version: 2
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: cimg/go:1.17.13
+    - image: cimg/go:1.19
   working_directory: /home/circleci/go/src/github.com/weaveworks/common
 
 workflows:
