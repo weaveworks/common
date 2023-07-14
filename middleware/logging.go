@@ -51,7 +51,7 @@ func NewLogMiddleware(log logging.Interface, logRequestHeaders bool, logRequestA
 type DoNotLogError struct{ Err error }
 
 func (i DoNotLogError) Error() string        { return i.Err.Error() }
-func Unwrap(i DoNotLogError) error           { return i.Err }
+func (i DoNotLogError) Unwrap() error        { return i.Err }
 func (i DoNotLogError) Is(target error) bool { _, ok := target.(DoNotLogError); return ok }
 
 // logWithRequest information from the request and context as fields.
