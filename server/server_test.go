@@ -594,6 +594,95 @@ func TestTLSServer(t *testing.T) {
 	require.EqualValues(t, &empty, grpcRes)
 }
 
+func TestTLSServerWithInlineCerts(t *testing.T) {
+	var level logging.Level
+	require.NoError(t, level.Set("info"))
+
+	cmd := exec.Command("bash", "certs/genCerts.sh", "certs", "1")
+	err := cmd.Run()
+	require.NoError(t, err)
+
+	cert, err := os.ReadFile("certs/server.crt")
+	require.NoError(t, err)
+
+	key, err := os.ReadFile("certs/server.key")
+	require.NoError(t, err)
+
+	clientCAs, err := os.ReadFile("certs/root.crt")
+	require.NoError(t, err)
+
+	cfg := Config{
+		HTTPListenNetwork: DefaultNetwork,
+		HTTPListenAddress: "localhost",
+		HTTPListenPort:    9193,
+		HTTPTLSConfig: TLSConfig{
+			TLSCert:       string(cert),
+			TLSKey:        string(key),
+			ClientAuth:    "RequireAndVerifyClientCert",
+			ClientCAsText: string(clientCAs),
+		},
+		GRPCTLSConfig: TLSConfig{
+			TLSCert:       string(cert),
+			TLSKey:        string(key),
+			ClientAuth:    "VerifyClientCertIfGiven",
+			ClientCAsText: string(clientCAs),
+		},
+		MetricsNamespace:  "testing_tls",
+		GRPCListenNetwork: DefaultNetwork,
+		GRPCListenAddress: "localhost",
+		GRPCListenPort:    9194,
+	}
+	server, err := New(cfg)
+	require.NoError(t, err)
+
+	server.HTTP.HandleFunc("/testhttps", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello World!"))
+	})
+
+	fakeServer := FakeServer{}
+	RegisterFakeServerServer(server.GRPC, fakeServer)
+
+	go server.Run()
+	defer server.Shutdown()
+
+	clientCert, err := tls.LoadX509KeyPair("certs/client.crt", "certs/client.key")
+	require.NoError(t, err)
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(clientCAs)
+
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+		Certificates:       []tls.Certificate{clientCert},
+		RootCAs:            caCertPool,
+	}
+	tr := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
+	client := &http.Client{Transport: tr}
+	res, err := client.Get("https://localhost:9193/testhttps")
+	require.NoError(t, err)
+	defer res.Body.Close()
+
+	require.Equal(t, res.StatusCode, http.StatusOK)
+
+	body, err := io.ReadAll(res.Body)
+	require.NoError(t, err)
+	expected := []byte("Hello World!")
+	require.Equal(t, expected, body)
+
+	conn, err := grpc.Dial("localhost:9194", grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	require.NoError(t, err)
+	defer conn.Close()
+
+	empty := protobuf.Empty{}
+	grpcClient := NewFakeServerClient(conn)
+	grpcRes, err := grpcClient.Succeed(context.Background(), &empty)
+	require.NoError(t, err)
+	require.EqualValues(t, &empty, grpcRes)
+}
+
 type FakeLogger struct {
 	sourceIPs string
 }
