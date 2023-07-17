@@ -627,7 +627,7 @@ func TestTLSServerWithInlineCerts(t *testing.T) {
 			ClientAuth:    "VerifyClientCertIfGiven",
 			ClientCAsText: string(clientCAs),
 		},
-		MetricsNamespace:  "testing_tls",
+		MetricsNamespace:  "testing_tls_certs_inline",
 		GRPCListenNetwork: DefaultNetwork,
 		GRPCListenAddress: "localhost",
 		GRPCListenPort:    9194,
@@ -636,14 +636,17 @@ func TestTLSServerWithInlineCerts(t *testing.T) {
 	require.NoError(t, err)
 
 	server.HTTP.HandleFunc("/testhttps", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World!"))
+		_, err := w.Write([]byte("Hello World!"))
+		require.NoError(t, err)
 	})
 
 	fakeServer := FakeServer{}
 	RegisterFakeServerServer(server.GRPC, fakeServer)
 
-	go server.Run()
-	defer server.Shutdown()
+	go func() {
+		defer server.Shutdown()
+		require.NoError(t, server.Run())
+	}()
 
 	clientCert, err := tls.LoadX509KeyPair("certs/client.crt", "certs/client.key")
 	require.NoError(t, err)
