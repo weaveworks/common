@@ -633,6 +633,8 @@ func TestTLSServerWithInlineCerts(t *testing.T) {
 		GRPCListenPort:    9194,
 	}
 	server, err := New(cfg)
+	defer server.Shutdown()
+
 	require.NoError(t, err)
 
 	server.HTTP.HandleFunc("/testhttps", func(w http.ResponseWriter, r *http.Request) {
@@ -644,7 +646,6 @@ func TestTLSServerWithInlineCerts(t *testing.T) {
 	RegisterFakeServerServer(server.GRPC, fakeServer)
 
 	go func() {
-		defer server.Shutdown()
 		require.NoError(t, server.Run())
 	}()
 
