@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
+	"github.com/prometheus/common/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -617,13 +618,13 @@ func TestTLSServerWithInlineCerts(t *testing.T) {
 		HTTPListenPort:    9193,
 		HTTPTLSConfig: TLSConfig{
 			TLSCert:       string(cert),
-			TLSKey:        string(key),
+			TLSKey:        config.Secret(key),
 			ClientAuth:    "RequireAndVerifyClientCert",
 			ClientCAsText: string(clientCAs),
 		},
 		GRPCTLSConfig: TLSConfig{
 			TLSCert:       string(cert),
-			TLSKey:        string(key),
+			TLSKey:        config.Secret(key),
 			ClientAuth:    "VerifyClientCertIfGiven",
 			ClientCAsText: string(clientCAs),
 		},

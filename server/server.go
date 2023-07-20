@@ -53,13 +53,13 @@ type SignalHandler interface {
 
 // TLSConfig contains TLS parameters for Config.
 type TLSConfig struct {
-	TLSCert       string `yaml:"cert"`
-	TLSKey        string `yaml:"key"`
-	ClientCAsText string `yaml:"client_ca"`
-	TLSCertPath   string `yaml:"cert_file"`
-	TLSKeyPath    string `yaml:"key_file"`
-	ClientAuth    string `yaml:"client_auth_type"`
-	ClientCAs     string `yaml:"client_ca_file"`
+	TLSCert       string        `yaml:"cert"`
+	TLSKey        config.Secret `yaml:"key"`
+	ClientCAsText string        `yaml:"client_ca"`
+	TLSCertPath   string        `yaml:"cert_file"`
+	TLSKeyPath    string        `yaml:"key_file"`
+	ClientAuth    string        `yaml:"client_auth_type"`
+	ClientCAs     string        `yaml:"client_ca_file"`
 }
 
 // Config for a Server
