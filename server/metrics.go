@@ -10,9 +10,9 @@ import (
 type Metrics struct {
 	TcpConnections      *prometheus.GaugeVec
 	TcpConnectionsLimit *prometheus.GaugeVec
-	RequestDuration     *prometheus.HistogramVec
-	ReceivedMessageSize *prometheus.HistogramVec
-	SentMessageSize     *prometheus.HistogramVec
+	Duration            *prometheus.HistogramVec
+	RequestBodySize     *prometheus.HistogramVec
+	ResponseBodySize    *prometheus.HistogramVec
 	InflightRequests    *prometheus.GaugeVec
 }
 
@@ -28,7 +28,7 @@ func NewServerMetrics(cfg Config) *Metrics {
 			Name:      "tcp_connections_limit",
 			Help:      "The max number of TCP connections that can be accepted (0 means no limit).",
 		}, []string{"protocol"}),
-		RequestDuration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Duration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace:                       cfg.MetricsNamespace,
 			Name:                            "request_duration_seconds",
 			Help:                            "Time (in seconds) spent serving HTTP requests.",
@@ -37,13 +37,13 @@ func NewServerMetrics(cfg Config) *Metrics {
 			NativeHistogramMaxBucketNumber:  100,
 			NativeHistogramMinResetDuration: time.Hour,
 		}, []string{"method", "route", "status_code", "ws"}),
-		ReceivedMessageSize: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		RequestBodySize: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.MetricsNamespace,
 			Name:      "request_message_bytes",
 			Help:      "Size (in bytes) of messages received in the request.",
 			Buckets:   middleware.BodySizeBuckets,
 		}, []string{"method", "route"}),
-		SentMessageSize: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		ResponseBodySize: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: cfg.MetricsNamespace,
 			Name:      "response_message_bytes",
 			Help:      "Size (in bytes) of messages sent in response.",
@@ -61,9 +61,9 @@ func (s *Metrics) MustRegister(registerer prometheus.Registerer) {
 	registerer.MustRegister(
 		s.TcpConnections,
 		s.TcpConnectionsLimit,
-		s.RequestDuration,
-		s.ReceivedMessageSize,
-		s.SentMessageSize,
+		s.Duration,
+		s.RequestBodySize,
+		s.ResponseBodySize,
 		s.InflightRequests,
 	)
 }

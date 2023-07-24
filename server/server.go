@@ -327,14 +327,14 @@ func newServer(cfg Config, metrics *Metrics) (*Server, error) {
 	grpcMiddleware := []grpc.UnaryServerInterceptor{
 		serverLog.UnaryServerInterceptor,
 		otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
-		middleware.UnaryServerInstrumentInterceptor(metrics.RequestDuration),
+		middleware.UnaryServerInstrumentInterceptor(metrics.Duration),
 	}
 	grpcMiddleware = append(grpcMiddleware, cfg.GRPCMiddleware...)
 
 	grpcStreamMiddleware := []grpc.StreamServerInterceptor{
 		serverLog.StreamServerInterceptor,
 		otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
-		middleware.StreamServerInstrumentInterceptor(metrics.RequestDuration),
+		middleware.StreamServerInstrumentInterceptor(metrics.Duration),
 	}
 	grpcStreamMiddleware = append(grpcStreamMiddleware, cfg.GRPCStreamMiddleware...)
 
@@ -360,8 +360,8 @@ func newServer(cfg Config, metrics *Metrics) (*Server, error) {
 		grpc.MaxSendMsgSize(cfg.GRPCServerMaxSendMsgSize),
 		grpc.MaxConcurrentStreams(uint32(cfg.GPRCServerMaxConcurrentStreams)),
 		grpc.StatsHandler(middleware.NewStatsHandler(
-			metrics.ReceivedMessageSize,
-			metrics.SentMessageSize,
+			metrics.RequestBodySize,
+			metrics.ResponseBodySize,
 			metrics.InflightRequests,
 		)),
 	}
@@ -408,9 +408,9 @@ func newServer(cfg Config, metrics *Metrics) (*Server, error) {
 		defaultLogMiddleware,
 		middleware.Instrument{
 			RouteMatcher:     router,
-			Duration:         metrics.RequestDuration,
-			RequestBodySize:  metrics.ReceivedMessageSize,
-			ResponseBodySize: metrics.SentMessageSize,
+			Duration:         metrics.Duration,
+			RequestBodySize:  metrics.RequestBodySize,
+			ResponseBodySize: metrics.ResponseBodySize,
 			InflightRequests: metrics.InflightRequests,
 		},
 	}
