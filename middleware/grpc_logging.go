@@ -17,6 +17,14 @@ const (
 	errorKey = "err"
 )
 
+// This can be used with `errors.Is` to see if the error marked itself as not to be logged.
+// E.g. if the error is caused by overload, then we don't want to log it because that uses more resource.
+type DoNotLogError struct{ Err error }
+
+func (i DoNotLogError) Error() string        { return i.Err.Error() }
+func (i DoNotLogError) Unwrap() error        { return i.Err }
+func (i DoNotLogError) Is(target error) bool { _, ok := target.(DoNotLogError); return ok }
+
 // GRPCServerLog logs grpc requests, errors, and latency.
 type GRPCServerLog struct {
 	Log logging.Interface

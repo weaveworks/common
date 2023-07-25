@@ -28,9 +28,6 @@ func TestBadWriteLogging(t *testing.T) {
 	}, {
 		err:         nil,
 		logContains: []string{"debug", "GET http://example.com/foo (200)"},
-	}, {
-		err:         DoNotLogError{Err: errors.New("yolo")},
-		logContains: nil,
 	}} {
 		buf := bytes.NewBuffer(nil)
 		logrusLogger := logrus.New()
