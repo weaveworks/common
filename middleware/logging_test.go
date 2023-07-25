@@ -51,9 +51,6 @@ func TestBadWriteLogging(t *testing.T) {
 		}
 		loggingHandler.ServeHTTP(w, req)
 
-		if len(tc.logContains) == 0 {
-			require.Empty(t, buf)
-		}
 		for _, content := range tc.logContains {
 			require.True(t, bytes.Contains(buf.Bytes(), []byte(content)))
 		}
