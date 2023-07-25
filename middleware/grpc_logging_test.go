@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
 	"github.com/weaveworks/common/logging"
@@ -26,5 +29,46 @@ func BenchmarkGRPCServerLog_UnaryServerInterceptor_NoError(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		_, _ = l.UnaryServerInterceptor(ctx, nil, info, handler)
+	}
+}
+
+func TestGrpcLogging(t *testing.T) {
+	ctx := context.Background()
+	info := &grpc.UnaryServerInfo{FullMethod: "Test"}
+	for _, tc := range []struct {
+		err         error
+		logContains []string
+	}{{
+		err:         context.Canceled,
+		logContains: []string{"level=debug", "context canceled"},
+	}, {
+		err:         errors.New("yolo"),
+		logContains: []string{"level=warn", "err=yolo"},
+	}, {
+		err:         nil,
+		logContains: []string{"level=debug", "method=Test"},
+	}, {
+		err:         DoNotLogError{Err: errors.New("yolo")},
+		logContains: nil,
+	}} {
+		t.Run("", func(t *testing.T) {
+			buf := bytes.NewBuffer(nil)
+			logger := logging.GoKit(log.NewLogfmtLogger(buf))
+			l := GRPCServerLog{Log: logger, WithRequest: true, DisableRequestSuccessLog: false}
+
+			handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+				return nil, tc.err
+			}
+
+			_, err := l.UnaryServerInterceptor(ctx, nil, info, handler)
+			require.ErrorIs(t, tc.err, err)
+
+			if len(tc.logContains) == 0 {
+				require.Empty(t, buf)
+			}
+			for _, content := range tc.logContains {
+				require.Contains(t, buf.String(), content)
+			}
+		})
 	}
 }
