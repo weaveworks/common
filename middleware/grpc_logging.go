@@ -17,13 +17,10 @@ const (
 	errorKey = "err"
 )
 
-// This can be used with `errors.Is` to see if the error marked itself as not to be logged.
-// E.g. if the error is caused by overload, then we don't want to log it because that uses more resource.
-type DoNotLogError struct{ Err error }
-
-func (i DoNotLogError) Error() string        { return i.Err.Error() }
-func (i DoNotLogError) Unwrap() error        { return i.Err }
-func (i DoNotLogError) Is(target error) bool { _, ok := target.(DoNotLogError); return ok }
+// If an error implements this interface, it will get called and GRPCServerLog will do nothing.
+type CustomLog interface {
+	LogOperation(ctx context.Context, _ logging.Interface, method string, duration time.Duration)
+}
 
 // GRPCServerLog logs grpc requests, errors, and latency.
 type GRPCServerLog struct {
@@ -40,7 +37,9 @@ func (s GRPCServerLog) UnaryServerInterceptor(ctx context.Context, req interface
 	if err == nil && s.DisableRequestSuccessLog {
 		return resp, nil
 	}
-	if errors.Is(err, DoNotLogError{}) {
+	var customLog CustomLog
+	if errors.As(err, &customLog) {
+		customLog.LogOperation(ctx, s.Log, info.FullMethod, time.Since(begin))
 		return resp, err
 	}
 
