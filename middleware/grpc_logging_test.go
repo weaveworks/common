@@ -37,7 +37,7 @@ type doNotLogError struct{ Err error }
 
 func (i doNotLogError) Error() string { return i.Err.Error() }
 func (i doNotLogError) Unwrap() error { return i.Err }
-func (i doNotLogError) LogOperation(_ context.Context, _ logging.Interface, _ string, _ time.Duration) {
+func (i doNotLogError) Observe(_ context.Context, _ logging.Interface, _ string, _ time.Duration) {
 	// no-op
 }
 
