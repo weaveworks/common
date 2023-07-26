@@ -17,9 +17,9 @@ const (
 	errorKey = "err"
 )
 
-// If an error implements Observe(), it will get called and GRPCServerLog will do nothing.
-type Observer interface {
-	Observe(ctx context.Context, _ logging.Interface, method string, duration time.Duration)
+// An error can implement ShouldLog() to control whether GRPCServerLog will log.
+type OptionalLogging interface {
+	ShouldLog(ctx context.Context, duration time.Duration) bool
 }
 
 // GRPCServerLog logs grpc requests, errors, and latency.
@@ -37,9 +37,8 @@ func (s GRPCServerLog) UnaryServerInterceptor(ctx context.Context, req interface
 	if err == nil && s.DisableRequestSuccessLog {
 		return resp, nil
 	}
-	var observer Observer
-	if errors.As(err, &observer) {
-		observer.Observe(ctx, s.Log, info.FullMethod, time.Since(begin))
+	var optional OptionalLogging
+	if errors.As(err, &optional) && !optional.ShouldLog(ctx, time.Since(begin)) {
 		return resp, err
 	}
 

@@ -35,11 +35,9 @@ func BenchmarkGRPCServerLog_UnaryServerInterceptor_NoError(b *testing.B) {
 
 type doNotLogError struct{ Err error }
 
-func (i doNotLogError) Error() string { return i.Err.Error() }
-func (i doNotLogError) Unwrap() error { return i.Err }
-func (i doNotLogError) Observe(_ context.Context, _ logging.Interface, _ string, _ time.Duration) {
-	// no-op
-}
+func (i doNotLogError) Error() string                                     { return i.Err.Error() }
+func (i doNotLogError) Unwrap() error                                     { return i.Err }
+func (i doNotLogError) ShouldLog(_ context.Context, _ time.Duration) bool { return false }
 
 func TestGrpcLogging(t *testing.T) {
 	ctx := context.Background()
