@@ -10,6 +10,8 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
+	"github.com/uber/jaeger-client-go"
+	jaegerpropagator "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/contrib/samplers/jaegerremote"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -17,7 +19,6 @@ import (
 	jaegerotel "go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/propagation"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 )
 
 // ErrInvalidConfiguration is an error to notify client to provide valid trace report agent or config server
@@ -167,10 +168,12 @@ func (cfg TracingConfig) initJaegerTracerProvider(serviceName string) (*tracesdk
 	)
 
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	))
+	propagators := []propagation.TextMapPropagator{}
+	// w3c Propagator is the default propagator
+	propagators = append(propagators, propagation.TraceContext{}, propagation.Baggage{})
+	// jaeger Propagator is for backwards compatibility
+	propagators = append(propagators, jaegerpropagator.Jaeger{})
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagators...))
 
 	// OpenTracing <=> OpenTelemetry bridge
 	// The tracer name is empty so that the bridge uses the default tracer.
@@ -182,14 +185,27 @@ func (cfg TracingConfig) initJaegerTracerProvider(serviceName string) (*tracesdk
 
 // ExtractTraceID extracts the trace id, if any from the context.
 func ExtractTraceID(ctx context.Context) (string, bool) {
-	traceId := trace.SpanContextFromContext(ctx).TraceID().String()
-	return traceId, traceId != ""
+	sp := opentracing.SpanFromContext(ctx)
+	if sp == nil {
+		return "", false
+	}
+	sctx, ok := sp.Context().(jaeger.SpanContext)
+	if !ok {
+		return "", false
+	}
+
+	return sctx.TraceID().String(), true
 }
 
 func ExtractSampledTraceID(ctx context.Context) (string, bool) {
-	traceID := trace.SpanContextFromContext(ctx).TraceID().String()
-	if traceID != "" {
-		return traceID, trace.SpanContextFromContext(ctx).IsSampled()
+	sp := opentracing.SpanFromContext(ctx)
+	if sp == nil {
+		return "", false
 	}
-	return "", false
+	sctx, ok := sp.Context().(jaeger.SpanContext)
+	if !ok {
+		return "", false
+	}
+
+	return sctx.TraceID().String(), sctx.IsSampled()
 }
