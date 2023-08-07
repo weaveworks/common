@@ -12,7 +12,7 @@ require (
 	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.0
 	github.com/gogo/status v1.0.3
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.7.3
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
@@ -22,18 +22,19 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
-	github.com/prometheus/client_golang v1.14.0
-	github.com/prometheus/exporter-toolkit v0.8.2
+	github.com/prometheus/client_golang v1.15.1
+	github.com/prometheus/common v0.44.0
+	github.com/prometheus/exporter-toolkit v0.10.1-0.20230714054209-2f4150c63f97
 	github.com/sercand/kuberesolver/v4 v4.0.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/stretchr/testify v1.8.1
+	github.com/soheilhy/cmux v0.1.5
+	github.com/stretchr/testify v1.8.2
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	go.uber.org/atomic v1.5.1 // indirect
-	golang.org/x/net v0.5.0
-	golang.org/x/tools v0.3.0
+	golang.org/x/net v0.10.0
+	golang.org/x/tools v0.6.0
 	google.golang.org/grpc v1.53.0
 	gopkg.in/yaml.v2 v2.4.0
 )
