@@ -12,10 +12,9 @@ require (
 	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.0
 	github.com/gogo/status v1.0.3
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.7.3
 	github.com/mattn/go-colorable v0.0.9 // indirect
-	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
 	github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9
@@ -26,14 +25,14 @@ require (
 	github.com/prometheus/exporter-toolkit v0.8.2
 	github.com/sercand/kuberesolver/v4 v4.0.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/stretchr/testify v1.8.1
+	github.com/soheilhy/cmux v0.1.5
+	github.com/stretchr/testify v1.8.3
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	go.uber.org/atomic v1.5.1 // indirect
-	golang.org/x/net v0.5.0
-	golang.org/x/tools v0.3.0
-	google.golang.org/grpc v1.53.0
+	golang.org/x/net v0.9.0
+	golang.org/x/tools v0.7.0
+	google.golang.org/grpc v1.56.3
 	gopkg.in/yaml.v2 v2.4.0
 )
